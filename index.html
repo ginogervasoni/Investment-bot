@@ -24,7 +24,7 @@
           <button class="nav-link" data-view="metodologia">Metodología</button>
         </nav>
         <div class="header-actions">
-          <span class="demo-pill"><i></i> Datos demostrativos</span>
+          <span class="demo-pill official-pill"><i></i> Paso 1 · Límites oficiales</span>
           <button class="icon-button" id="openInfo" aria-label="Información sobre los datos">i</button>
         </div>
       </header>
@@ -79,7 +79,7 @@
               <div id="map"></div>
               <div class="map-topline">
                 <div class="location-chip">Santa Fe Capital <span>⌄</span></div>
-                <div class="period-chip">Actualización demo · Sep 2026</div>
+                <div class="period-chip">Geografía oficial SCIT/IDESF · Puntajes demo</div>
               </div>
               <div class="map-legend">
                 <div class="legend-title"><span>Potencial</span><button id="legendHelp" aria-label="Ayuda sobre la escala">?</button></div>
@@ -87,6 +87,7 @@
                 <div class="legend-labels"><span>Muy bajo</span><span>Moderado</span><span>Muy alto</span></div>
               </div>
               <div class="map-stat" id="visibleStat"><b>10</b><span>zonas visibles</span></div>
+              <a class="official-map-source" href="https://www.santafe.gob.ar/idesf/geoportal/paginas/servicios-OGC" target="_blank" rel="noopener">Límites oficiales · SCIT/IDESF ↗</a>
             </section>
 
             <aside class="insight-panel" id="insightPanel">
@@ -165,7 +166,7 @@
             <article class="risk-card"><span class="method-num">−R</span><h3>Riesgo</h3><p>Exposición hídrica, oferta excesiva, baja muestra y datos antiguos.</p></article>
           </div>
           <div class="sources-section"><div><span class="zone-kicker">Fuentes previstas</span><h2>Trazabilidad desde el origen</h2></div><div class="source-tags"><span>IPEC Santa Fe</span><span>INDEC</span><span>Municipalidad</span><span>SCIT</span><span>BCRA</span><span>Colegio de Escribanos</span></div></div>
-          <div class="method-notice"><b>Estado de este MVP</b><p>Los valores actuales son simulados para demostrar el funcionamiento. Los círculos representan áreas de análisis aproximadas y no límites barriales oficiales. La siguiente etapa consiste en conectar conjuntos de datos oficiales y geometrías verificadas.</p></div>
+          <div class="method-notice step-complete"><b>Paso 1 completado · Base territorial</b><p>El mapa muestra la capa oficial “Vecinales” publicada por el Servicio de Catastro e Información Territorial mediante IDESF. Los indicadores económicos continúan siendo demostrativos hasta incorporar el Censo 2022 en el Paso 2.</p></div>
         </section>
       </main>
     </div>
@@ -174,7 +175,7 @@
       <button class="dialog-close" aria-label="Cerrar">×</button>
       <span class="zone-kicker">Acerca del prototipo</span>
       <h2>Datos claros desde el primer día</h2>
-      <p>Esta versión permite probar el mapa, perfiles, filtros, fichas y comparaciones con información simulada. Ninguna cifra debe usarse todavía para tomar una decisión de inversión real.</p>
+      <p>La geografía proviene del servicio oficial SCIT/IDESF. Los puntajes, precios, rentabilidades y tendencias todavía son simulados y no deben utilizarse para tomar una decisión de inversión real.</p>
       <div class="dialog-points"><p><i class="official"></i><span><b>Dato oficial</b>Publicado por un organismo público.</span></p><p><i class="market"></i><span><b>Dato de mercado</b>Proveniente de publicaciones autorizadas.</span></p><p><i class="estimate"></i><span><b>Estimación</b>Resultado de un cálculo documentado.</span></p></div>
     </dialog>
 
