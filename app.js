@@ -13,10 +13,44 @@ const zones = [
 
 const profiles={balanced:{demand:.30,development:.25,infrastructure:.20,yield:.15,growth:.10,risk:.18},rent:{demand:.32,development:.08,infrastructure:.20,yield:.30,growth:.10,risk:.20},growth:{demand:.24,development:.25,infrastructure:.16,yield:.08,growth:.27,risk:.18},development:{demand:.18,development:.38,infrastructure:.18,yield:.06,growth:.20,risk:.20},conservative:{demand:.27,development:.12,infrastructure:.28,yield:.16,growth:.07,risk:.32}};
 const state={metric:'score',strategy:'balanced',minScore:45,selected:'candioti-norte',compare:[]};
-let map,markers=new Map(),officialBoundaries,censusLayer,censusData;
+let map,markers=new Map(),officialBoundaries,censusLayer,censusData,constructionData;
 
 const $=s=>document.querySelector(s); const $$=s=>[...document.querySelectorAll(s)];
 const fmt=n=>new Intl.NumberFormat('es-AR').format(n);
+const money=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(n);
+const pct=n=>`${n>=0?'+':''}${n.toFixed(1).replace('.',',')}%`;
+const periodLabel=period=>{const [year,month]=period.split('-').map(Number);return new Intl.DateTimeFormat('es-AR',{month:'short',year:'numeric'}).format(new Date(year,month-1,1)).replace('.','')};
+
+async function loadConstructionData(){
+  try{
+    const response=await fetch('data/construction-series.json');
+    if(!response.ok)throw new Error(`HTTP ${response.status}`);
+    constructionData=await response.json();renderConstruction();
+  }catch(error){console.error('No se pudo cargar la serie de construcción',error);$('#constructionCost').textContent='No disponible';$('#constructionUpdated').textContent='No fue posible cargar la serie oficial.'}
+}
+
+function renderLineChart(target,rows,key){
+  const values=rows.map(row=>row[key]),min=Math.min(...values)*.96,max=Math.max(...values)*1.03,x=index=>42+index*(650/(rows.length-1)),y=value=>210-(value-min)/(max-min)*165;
+  const points=values.map((value,index)=>`${x(index)},${y(value)}`).join(' ');
+  const guides=[0,.5,1].map(f=>{const gy=45+f*165,value=max-f*(max-min);return `<line x1="42" y1="${gy}" x2="692" y2="${gy}" class="data-gridline"/><text x="36" y="${gy+4}" text-anchor="end" class="data-axis">${Math.round(value/1000)}k</text>`}).join('');
+  target.innerHTML=`${guides}<path d="M ${points} L ${x(rows.length-1)} 210 L 42 210 Z" class="data-area"/><polyline points="${points}" class="data-line"/><circle cx="${x(rows.length-1)}" cy="${y(values.at(-1))}" r="5" class="data-dot"/><text x="${x(rows.length-1)-6}" y="${y(values.at(-1))-12}" text-anchor="end" class="data-value">${money(values.at(-1))}</text>`;
+}
+
+function renderBarChart(target,rows,key){
+  const values=rows.map(row=>row[key]),max=Math.max(...values)*1.15,barWidth=650/rows.length;
+  const guides=[0,.5,1].map(f=>{const gy=45+f*165,value=max-f*max;return `<line x1="42" y1="${gy}" x2="692" y2="${gy}" class="data-gridline"/><text x="36" y="${gy+4}" text-anchor="end" class="data-axis">${Math.round(value/1000)}k</text>`}).join('');
+  const bars=values.map((value,index)=>{const height=value/max*165;return `<rect x="${44+index*barWidth}" y="${210-height}" width="${Math.max(7,barWidth-7)}" height="${height}" rx="4" class="data-bar${index===values.length-1?' latest':''}"><title>${periodLabel(rows[index].period)}: ${fmt(value)} m²</title></rect>`}).join('');
+  target.innerHTML=`${guides}${bars}<text x="688" y="32" text-anchor="end" class="data-value">${fmt(values.at(-1))} m²</text>`;
+}
+
+function renderConstruction(){
+  const data=constructionData,summary=data.summary,costs=data.cost_gran_santa_fe,permits=data.permits_santa_fe_city;
+  $('#constructionCost').textContent=money(summary.cost_ars_m2);$('#constructionMonthly').textContent=pct(summary.cost_monthly_change_pct);$('#constructionPeriod').textContent=`${periodLabel(data.latest_period)} · dato provisorio`;
+  $('#permitsYtd').textContent=`${fmt(summary.permits_ytd_m2)} m²`;$('#permitsChange').textContent=pct(summary.permits_ytd_change_pct);$('#permitsChange').classList.toggle('negative',summary.permits_ytd_change_pct<0);
+  $('#constructionUpdated').textContent=`Fuente actualizada a ${periodLabel(data.latest_period)} · descarga ${data.generated_at}`;
+  renderLineChart($('#costChart'),costs,'total_ars_m2');renderBarChart($('#permitsChart'),permits,'authorized_m2');
+  $('#costChartStart').textContent=periodLabel(costs[0].period);$('#costChartEnd').textContent=periodLabel(costs.at(-1).period);$('#permitsChartStart').textContent=periodLabel(permits[0].period);$('#permitsChartEnd').textContent=periodLabel(permits.at(-1).period);
+}
 function calcScore(z,profile=state.strategy){const p=profiles[profile];const yieldScore=Math.min(100,z.yield*12);const growthScore=Math.min(100,Math.max(0,z.growth*9));return Math.round(z.demand*p.demand+z.development*p.development+z.infrastructure*p.infrastructure+yieldScore*p.yield+growthScore*p.growth-z.risk*p.risk)}
 function metricValue(z){if(state.metric==='score')return calcScore(z);if(state.metric==='yield')return z.yield*12;if(state.metric==='growth')return z.growth*9;if(state.metric==='development')return z.development;if(state.metric==='risk')return 100-z.risk;return z.base}
 function colorFor(v){return v>=80?'#239669':v>=65?'#53b889':v>=45?'#e6b94c':v>=25?'#e88935':'#cf5454'}
@@ -93,7 +127,7 @@ function renderComparison(){const selected=state.compare.map(id=>zones.find(z=>z
 function switchView(view){$$('.view').forEach(v=>v.classList.toggle('active',v.id===`view-${view}`));$$('.nav-link').forEach(b=>b.classList.toggle('active',b.dataset.view===view));if(view==='mapa')setTimeout(()=>map.invalidateSize(),50);if(view==='zonas'){renderRanking($('#rankingStrategy').value);renderCompareSelection()}}
 
 document.addEventListener('DOMContentLoaded',()=>{
-  initMap();selectZone(state.selected);
+  initMap();loadConstructionData();selectZone(state.selected);
   $('#strategy').addEventListener('change',e=>{state.strategy=e.target.value;renderMarkers();selectZone(state.selected)});
   $('#minScore').addEventListener('input',e=>{state.minScore=+e.target.value;$('#scoreOutput').textContent=e.target.value;renderMarkers()});
   $$('.layer-button').forEach(b=>b.addEventListener('click',()=>{$$('.layer-button').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.metric=b.dataset.metric;applyMapMode()}));

@@ -24,4 +24,15 @@ La aplicación consume en tiempo real la capa `scit_vecinales` del servicio WMS 
 
 Las geometrías de radio provienen de la cartografía censal distribuida por CONICET; la conversión pública a Parquet es mantenida por `ciut-redatam` y Source Cooperative. El catálogo documenta estos intermediarios para conservar la trazabilidad.
 
-El Censo no se actualiza mensualmente. En futuras etapas, la actualización mensual corresponderá a permisos, construcción, actividad, crédito, precios y alquileres. Los puntajes, precios y rentabilidades actuales permanecen simulados.
+El Censo no se actualiza mensualmente.
+
+## Paso 3 — Construcción y permisos
+
+`construction-series.json` resume los últimos 13 meses disponibles de dos planillas oficiales del IPEC:
+
+- costo total y por capítulos del metro cuadrado para el aglomerado Gran Santa Fe;
+- superficie autorizada por permisos de edificación para el municipio Santa Fe.
+
+El corte incorporado es julio de 2026 y los últimos meses son provisorios. La actualización se reproduce con `scripts/extract_ipec_construction.py`, que descarga las planillas, valida las filas de Santa Fe y recalcula variaciones acumuladas.
+
+La escala territorial es ciudad o aglomerado. IPEC no publica estas cifras por vecinal, de modo que la aplicación las muestra como contexto y no modifica con ellas los colores ni puntajes zonales. Los precios, alquileres, rentabilidades y puntajes actuales permanecen simulados.

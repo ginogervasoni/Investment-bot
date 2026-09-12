@@ -1,0 +1,227 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-09-12",
+  "latest_period": "2026-07",
+  "scope_note": "Costos: aglomerado Gran Santa Fe. Permisos: municipio Santa Fe. No son datos por vecinal.",
+  "summary": {
+    "cost_ars_m2": 997127.76,
+    "cost_monthly_change_pct": 4.18,
+    "cost_yoy_change_pct": 26.45,
+    "permits_ytd_m2": 68152,
+    "permits_ytd_change_pct": -15.44,
+    "permits_latest_month_m2": 12947
+  },
+  "cost_gran_santa_fe": [
+    {
+      "period": "2025-07",
+      "total_ars_m2": 788581.21,
+      "materials_ars_m2": 377133.31,
+      "labor_ars_m2": 329321.38,
+      "overhead_ars_m2": 82126.53,
+      "monthly_change_pct": 0.7,
+      "materials_change_pct": 1.37,
+      "labor_change_pct": 0,
+      "overhead_change_pct": 0.5
+    },
+    {
+      "period": "2025-08",
+      "total_ars_m2": 803310.48,
+      "materials_ars_m2": 384019.65,
+      "labor_ars_m2": 336606.52,
+      "overhead_ars_m2": 82684.31,
+      "monthly_change_pct": 1.87,
+      "materials_change_pct": 1.83,
+      "labor_change_pct": 2.21,
+      "overhead_change_pct": 0.68
+    },
+    {
+      "period": "2025-09",
+      "total_ars_m2": 818687.15,
+      "materials_ars_m2": 394462.37,
+      "labor_ars_m2": 340982.21,
+      "overhead_ars_m2": 83242.56,
+      "monthly_change_pct": 1.91,
+      "materials_change_pct": 2.72,
+      "labor_change_pct": 1.3,
+      "overhead_change_pct": 0.68
+    },
+    {
+      "period": "2025-10",
+      "total_ars_m2": 835471.91,
+      "materials_ars_m2": 406384.06,
+      "labor_ars_m2": 345074.14,
+      "overhead_ars_m2": 84013.71,
+      "monthly_change_pct": 2.05,
+      "materials_change_pct": 3.02,
+      "labor_change_pct": 1.2,
+      "overhead_change_pct": 0.93
+    },
+    {
+      "period": "2025-11",
+      "total_ars_m2": 846528.46,
+      "materials_ars_m2": 411467.59,
+      "labor_ars_m2": 349905.13,
+      "overhead_ars_m2": 85155.74,
+      "monthly_change_pct": 1.32,
+      "materials_change_pct": 1.25,
+      "labor_change_pct": 1.4,
+      "overhead_change_pct": 1.36
+    },
+    {
+      "period": "2025-12",
+      "total_ars_m2": 857805.13,
+      "materials_ars_m2": 417647.92,
+      "labor_ars_m2": 354454.02,
+      "overhead_ars_m2": 85703.19,
+      "monthly_change_pct": 1.33,
+      "materials_change_pct": 1.5,
+      "labor_change_pct": 1.3,
+      "overhead_change_pct": 0.64
+    },
+    {
+      "period": "2026-01",
+      "total_ars_m2": 871867.11,
+      "materials_ars_m2": 424094.58,
+      "labor_ars_m2": 361542.98,
+      "overhead_ars_m2": 86229.56,
+      "monthly_change_pct": 1.64,
+      "materials_change_pct": 1.54,
+      "labor_change_pct": 2.0,
+      "overhead_change_pct": 0.61
+    },
+    {
+      "period": "2026-02",
+      "total_ars_m2": 886074.29,
+      "materials_ars_m2": 430900.26,
+      "labor_ars_m2": 368050.78,
+      "overhead_ars_m2": 87123.25,
+      "monthly_change_pct": 1.63,
+      "materials_change_pct": 1.6,
+      "labor_change_pct": 1.8,
+      "overhead_change_pct": 1.04
+    },
+    {
+      "period": "2026-03",
+      "total_ars_m2": 891425.61,
+      "materials_ars_m2": 435434.78,
+      "labor_ars_m2": 368050.78,
+      "overhead_ars_m2": 87940.05,
+      "monthly_change_pct": 0.6,
+      "materials_change_pct": 1.05,
+      "labor_change_pct": 0.0,
+      "overhead_change_pct": 0.94
+    },
+    {
+      "period": "2026-04",
+      "total_ars_m2": 919835.02,
+      "materials_ars_m2": 448605.84,
+      "labor_ars_m2": 382544.65,
+      "overhead_ars_m2": 88684.52,
+      "monthly_change_pct": 3.19,
+      "materials_change_pct": 3.02,
+      "labor_change_pct": 3.94,
+      "overhead_change_pct": 0.85
+    },
+    {
+      "period": "2026-05",
+      "total_ars_m2": 937586.41,
+      "materials_ars_m2": 457477.93,
+      "labor_ars_m2": 389430.53,
+      "overhead_ars_m2": 90677.95,
+      "monthly_change_pct": 1.93,
+      "materials_change_pct": 1.98,
+      "labor_change_pct": 1.8,
+      "overhead_change_pct": 2.25
+    },
+    {
+      "period": "2026-06",
+      "total_ars_m2": 957085.59,
+      "materials_ars_m2": 468440.18,
+      "labor_ars_m2": 397608.56,
+      "overhead_ars_m2": 91036.85,
+      "monthly_change_pct": 2.08,
+      "materials_change_pct": 2.4,
+      "labor_change_pct": 2.1,
+      "overhead_change_pct": 0.4
+    },
+    {
+      "period": "2026-07",
+      "total_ars_m2": 997127.76,
+      "materials_ars_m2": 476578.98,
+      "labor_ars_m2": 405560.54,
+      "overhead_ars_m2": 114988.24,
+      "monthly_change_pct": 4.18,
+      "materials_change_pct": 1.74,
+      "labor_change_pct": 2.0,
+      "overhead_change_pct": 26.31
+    }
+  ],
+  "permits_santa_fe_city": [
+    {
+      "period": "2025-07",
+      "authorized_m2": 12611
+    },
+    {
+      "period": "2025-08",
+      "authorized_m2": 8081
+    },
+    {
+      "period": "2025-09",
+      "authorized_m2": 10947
+    },
+    {
+      "period": "2025-10",
+      "authorized_m2": 35234
+    },
+    {
+      "period": "2025-11",
+      "authorized_m2": 8908
+    },
+    {
+      "period": "2025-12",
+      "authorized_m2": 5882
+    },
+    {
+      "period": "2026-01",
+      "authorized_m2": 5709
+    },
+    {
+      "period": "2026-02",
+      "authorized_m2": 2878
+    },
+    {
+      "period": "2026-03",
+      "authorized_m2": 8821
+    },
+    {
+      "period": "2026-04",
+      "authorized_m2": 10254
+    },
+    {
+      "period": "2026-05",
+      "authorized_m2": 11487
+    },
+    {
+      "period": "2026-06",
+      "authorized_m2": 16056
+    },
+    {
+      "period": "2026-07",
+      "authorized_m2": 12947
+    }
+  ],
+  "sources": [
+    {
+      "title": "Costo de la construcción aglomerados Santa Fe y Rosario",
+      "publisher": "IPEC",
+      "url": "https://www.estadisticasantafe.gob.ar/contenido/costo-de-la-construccion-aglomerados-santa-fe-y-rosario/",
+      "status": "provisional_latest_months"
+    },
+    {
+      "title": "Permisos de edificación",
+      "publisher": "IPEC",
+      "url": "https://www.estadisticasantafe.gob.ar/contenido/permisos-de-edificacion-2/",
+      "status": "administrative_records"
+    }
+  ]
+}

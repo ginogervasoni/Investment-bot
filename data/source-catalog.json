@@ -37,6 +37,24 @@
       ],
       "purpose": "Demographic and housing indicators by census tract for the local government of Santa Fe",
       "limitations": "Census values describe 2022 and are not monthly indicators. The neighborhood reference points are associated with the census tract that contains each point; they are not totals for an entire vecinal."
+    },
+    {
+      "id": "ipec_construccion_santa_fe",
+      "title": "Costo de la construcción y permisos de edificación",
+      "publisher": "Instituto Provincial de Estadística y Censos (IPEC Santa Fe)",
+      "classification": "official-administrative-statistics",
+      "cost_page": "https://www.estadisticasantafe.gob.ar/contenido/costo-de-la-construccion-aglomerados-santa-fe-y-rosario/",
+      "permits_page": "https://www.estadisticasantafe.gob.ar/contenido/permisos-de-edificacion-2/",
+      "geographic_level": "Gran Santa Fe para costos; municipio Santa Fe para permisos",
+      "latest_period": "2026-07",
+      "accessed_at": "2026-09-12",
+      "variables": [
+        "valor total y por capítulos del m² en pesos",
+        "variación mensual del nivel general y capítulos",
+        "superficie autorizada por permisos de edificación en m²"
+      ],
+      "purpose": "Citywide context for construction costs and intended future building activity",
+      "limitations": "Los últimos meses son provisorios. La fuente no desagrega estos indicadores por vecinal; no deben utilizarse como valor barrial ni se incorporan aún al puntaje zonal."
     }
   ]
 }

@@ -21,10 +21,11 @@
         <nav class="nav" aria-label="Navegación principal">
           <button class="nav-link active" data-view="mapa">Mapa</button>
           <button class="nav-link" data-view="zonas">Zonas</button>
+          <button class="nav-link" data-view="construccion">Construcción</button>
           <button class="nav-link" data-view="metodologia">Metodología</button>
         </nav>
         <div class="header-actions">
-          <span class="demo-pill official-pill"><i></i> Paso 2 · Censo 2022</span>
+          <span class="demo-pill official-pill"><i></i> Paso 3 · IPEC</span>
           <button class="icon-button" id="openInfo" aria-label="Información sobre los datos">i</button>
         </div>
       </header>
@@ -90,7 +91,7 @@
               <div id="map"></div>
               <div class="map-topline">
                 <div class="location-chip">Santa Fe Capital <span>⌄</span></div>
-                <div class="period-chip">SCIT + Censo 2022 · Mercado demo</div>
+                <div class="period-chip">SCIT + Censo 2022 + IPEC · Mercado demo</div>
               </div>
               <div class="map-legend">
                 <div class="legend-title"><span>Potencial</span><button id="legendHelp" aria-label="Ayuda sobre la escala">?</button></div>
@@ -176,6 +177,51 @@
           </section>
         </section>
 
+        <section class="view content-view construction-view" id="view-construccion">
+          <div class="construction-hero">
+            <div>
+              <div class="eyebrow"><span></span> Actividad real · IPEC</div>
+              <h1>El pulso de la construcción.</h1>
+              <p>Costos en Gran Santa Fe y superficie autorizada en Santa Fe Capital, con actualización reproducible desde las planillas oficiales.</p>
+            </div>
+            <div class="scope-card"><span>Escala del indicador</span><strong>Ciudad / aglomerado</strong><p>Estas cifras aportan contexto general. IPEC no las publica por vecinal, por eso no alteran todavía el color de cada zona.</p></div>
+          </div>
+
+          <div class="construction-kpis" aria-live="polite">
+            <article><span>Costo estimado del m²</span><b id="constructionCost">Cargando…</b><small>Gran Santa Fe · vivienda tipo</small></article>
+            <article><span>Variación mensual</span><b id="constructionMonthly">—</b><small id="constructionPeriod">Último período</small></article>
+            <article><span>Superficie autorizada</span><b id="permitsYtd">—</b><small>Santa Fe Capital · acumulado anual</small></article>
+            <article><span>Variación interanual</span><b id="permitsChange">—</b><small>Mismo período del año anterior</small></article>
+          </div>
+
+          <div class="construction-grid">
+            <article class="data-chart-card">
+              <div class="data-card-heading"><div><span>Gran Santa Fe</span><h2>Costo de construcción por m²</h2></div><span class="official-badge">IPEC · oficial</span></div>
+              <svg id="costChart" viewBox="0 0 720 250" role="img" aria-label="Evolución mensual del costo de construcción por metro cuadrado"></svg>
+              <div class="chart-foot"><span id="costChartStart">—</span><span id="costChartEnd">—</span></div>
+            </article>
+            <article class="data-chart-card">
+              <div class="data-card-heading"><div><span>Santa Fe Capital</span><h2>Superficie mensual autorizada</h2></div><span class="official-badge">Registro municipal</span></div>
+              <svg id="permitsChart" viewBox="0 0 720 250" role="img" aria-label="Superficie autorizada mensual en metros cuadrados"></svg>
+              <div class="chart-foot"><span id="permitsChartStart">—</span><span id="permitsChartEnd">—</span></div>
+            </article>
+          </div>
+
+          <section class="reading-panel">
+            <div><span class="zone-kicker">Cómo leerlo</span><h2>Dos señales diferentes</h2></div>
+            <div class="reading-grid">
+              <p><b>Costos</b> muestran la presión sobre construir una vivienda tipo. Incluyen materiales, mano de obra y gastos generales.</p>
+              <p><b>Permisos</b> anticipan actividad: registran la intención de construir, ampliar o remodelar según los municipios.</p>
+              <p><b>Uso responsable</b> exige combinarlos después con precios, alquileres, normativa y ubicación del proyecto.</p>
+            </div>
+          </section>
+
+          <div class="construction-source-row">
+            <span id="constructionUpdated">Actualizando fuente…</span>
+            <div><a href="https://www.estadisticasantafe.gob.ar/contenido/costo-de-la-construccion-aglomerados-santa-fe-y-rosario/" target="_blank" rel="noopener">Costo de construcción ↗</a><a href="https://www.estadisticasantafe.gob.ar/contenido/permisos-de-edificacion-2/" target="_blank" rel="noopener">Permisos ↗</a></div>
+          </div>
+        </section>
+
         <section class="view content-view" id="view-metodologia">
           <div class="method-hero">
             <div><div class="eyebrow"><span></span> Modelo transparente</div><h1>Una señal clara, construida con evidencia.</h1><p>Nodo combina datos territoriales, económicos y de mercado. Cada resultado conserva su origen, período y calidad.</p></div>
@@ -189,8 +235,8 @@
             <article><span class="method-num">10%</span><h3>Valorización</h3><p>Evolución relativa de precios, demanda e inversiones cercanas.</p></article>
             <article class="risk-card"><span class="method-num">−R</span><h3>Riesgo</h3><p>Exposición hídrica, oferta excesiva, baja muestra y datos antiguos.</p></article>
           </div>
-          <div class="sources-section"><div><span class="zone-kicker">Fuentes incorporadas y previstas</span><h2>Trazabilidad desde el origen</h2></div><div class="source-tags"><span class="source-live">INDEC · incorporada</span><span class="source-live">SCIT · incorporada</span><span>IPEC Santa Fe</span><span>Municipalidad</span><span>BCRA</span><span>Colegio de Escribanos</span></div></div>
-          <div class="method-notice step-complete"><b>Paso 2 completado · Censo 2022</b><p>El mapa ya contiene 568 radios del gobierno local Santa Fe con población en viviendas particulares, viviendas, hogares y tenencia de la vivienda. Los valores se agregaron desde la base REDATAM del INDEC. Los puntajes y métricas de mercado siguen siendo demostrativos.</p></div>
+          <div class="sources-section"><div><span class="zone-kicker">Fuentes incorporadas y previstas</span><h2>Trazabilidad desde el origen</h2></div><div class="source-tags"><span class="source-live">INDEC · incorporada</span><span class="source-live">SCIT · incorporada</span><span class="source-live">IPEC · incorporada</span><span>Mercado autorizado</span><span>BCRA</span><span>Colegio de Escribanos</span></div></div>
+          <div class="method-notice step-complete"><b>Paso 3 completado · Construcción</b><p>Se incorporaron costos mensuales de Gran Santa Fe y superficie autorizada del municipio Santa Fe publicados por IPEC. Se muestran como contexto de ciudad y aglomerado; no se asignan a vecinales. Los puntajes, precios, rentabilidades y tendencias de mercado continúan siendo demostrativos.</p></div>
         </section>
       </main>
     </div>
@@ -199,7 +245,7 @@
       <button class="dialog-close" aria-label="Cerrar">×</button>
       <span class="zone-kicker">Acerca del prototipo</span>
       <h2>Datos claros desde el primer día</h2>
-      <p>La geografía vecinal proviene de SCIT/IDESF y los indicadores demográficos de la base REDATAM del Censo 2022 del INDEC. Los puntajes, precios, rentabilidades y tendencias de mercado todavía son simulados.</p>
+      <p>La geografía vecinal proviene de SCIT/IDESF, los indicadores demográficos del Censo 2022 del INDEC y el contexto mensual de construcción de IPEC. Los puntajes, precios, rentabilidades y tendencias de mercado todavía son simulados.</p>
       <div class="dialog-points"><p><i class="official"></i><span><b>Dato oficial</b>Publicado por un organismo público.</span></p><p><i class="market"></i><span><b>Dato de mercado</b>Proveniente de publicaciones autorizadas.</span></p><p><i class="estimate"></i><span><b>Estimación</b>Resultado de un cálculo documentado.</span></p></div>
     </dialog>
 

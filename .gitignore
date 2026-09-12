@@ -1,0 +1,5 @@
+.sites-runtime/
+.data-cache/
+upload/
+*.tar.gz
+.DS_Store
