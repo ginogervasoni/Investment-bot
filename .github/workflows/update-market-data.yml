@@ -1,6 +1,12 @@
 name: Update Santa Fe market data
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/update-market-data.yml"
+      - "scripts/extract_tulugar_market.py"
+      - "scripts/validate_market_data.py"
   schedule:
     - cron: "17 8 1 * *"
       timezone: "America/Argentina/Cordoba"
