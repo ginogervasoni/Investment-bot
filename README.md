@@ -4,7 +4,7 @@ MVP de inteligencia territorial para explorar oportunidades inmobiliarias en San
 
 ## Qué incluye
 
-- Mapa interactivo basado en OpenStreetMap.
+- Mapa interactivo basado en OpenStreetMap con límites vecinales oficiales de SCIT/IDESF.
 - Cinco capas: potencial, rentabilidad, valorización, desarrollo y riesgo.
 - Perfiles de inversión con ponderaciones diferentes.
 - Filtro por puntaje mínimo.
@@ -15,7 +15,7 @@ MVP de inteligencia territorial para explorar oportunidades inmobiliarias en San
 
 ## Estado de los datos
 
-Los valores actuales son **simulados para demostración**. Los puntos representan áreas aproximadas de análisis y no límites oficiales de barrios. Antes de utilizar el producto para decisiones reales deben incorporarse geometrías verificadas y conectores para IPEC, INDEC, Municipalidad de Santa Fe, SCIT, BCRA y registros autorizados del mercado.
+La base territorial ya utiliza la capa oficial `scit_vecinales` publicada por SCIT mediante el servicio WMS de IDESF. Los valores económicos continúan **simulados para demostración**. Antes de utilizar el producto para decisiones reales deben incorporarse los indicadores de IPEC, INDEC, BCRA y registros autorizados del mercado.
 
 ## Ejecución local
 
@@ -29,8 +29,8 @@ Luego abrir `http://localhost:8080`.
 
 ## Próxima etapa
 
-1. Incorporar GeoJSON oficial de barrios y radios censales.
+1. Incorporar Censo 2022 por radio censal.
 2. Crear procesos de importación y validación para CSV/XLSX.
-3. Conectar fuentes oficiales y registrar fecha, metodología y cobertura.
-4. Agregar una base PostgreSQL/PostGIS y panel administrativo.
+3. Conectar indicadores oficiales y registrar fecha, metodología y cobertura.
+4. Agregar una base geográfica y panel administrativo.
 5. Validar el modelo con operaciones históricas antes de publicar recomendaciones.
