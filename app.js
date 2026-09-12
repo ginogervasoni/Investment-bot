@@ -13,7 +13,7 @@ const zones = [
 
 const profiles={balanced:{demand:.30,development:.25,infrastructure:.20,yield:.15,growth:.10,risk:.18},rent:{demand:.32,development:.08,infrastructure:.20,yield:.30,growth:.10,risk:.20},growth:{demand:.24,development:.25,infrastructure:.16,yield:.08,growth:.27,risk:.18},development:{demand:.18,development:.38,infrastructure:.18,yield:.06,growth:.20,risk:.20},conservative:{demand:.27,development:.12,infrastructure:.28,yield:.16,growth:.07,risk:.32}};
 const state={metric:'score',strategy:'balanced',minScore:45,selected:'candioti-norte',compare:[]};
-let map,markers=new Map(),officialBoundaries;
+let map,markers=new Map(),officialBoundaries,censusLayer,censusData;
 
 const $=s=>document.querySelector(s); const $$=s=>[...document.querySelectorAll(s)];
 const fmt=n=>new Intl.NumberFormat('es-AR').format(n);
@@ -21,6 +21,54 @@ function calcScore(z,profile=state.strategy){const p=profiles[profile];const yie
 function metricValue(z){if(state.metric==='score')return calcScore(z);if(state.metric==='yield')return z.yield*12;if(state.metric==='growth')return z.growth*9;if(state.metric==='development')return z.development;if(state.metric==='risk')return 100-z.risk;return z.base}
 function colorFor(v){return v>=80?'#239669':v>=65?'#53b889':v>=45?'#e6b94c':v>=25?'#e88935':'#cf5454'}
 function metricDisplay(z){if(state.metric==='yield')return z.yield.toFixed(1).replace('.',',')+'%';if(state.metric==='growth')return '+'+z.growth.toFixed(1).replace('.',',')+'%';if(state.metric==='risk')return z.risk;return Math.round(metricValue(z))}
+function isCensusMetric(){return state.metric==='population'||state.metric==='renters'}
+function censusColor(value){
+  if(state.metric==='renters')return value>=35?'#175f4a':value>=27?'#239669':value>=20?'#53b889':value>=12?'#e6b94c':'#cf5454';
+  return value>=1200?'#175f4a':value>=900?'#239669':value>=600?'#53b889':value>=300?'#e6b94c':'#cf5454';
+}
+function censusStyle(feature){const p=feature.properties;const value=state.metric==='renters'?p.rented_pct:p.population;return{color:'#ffffff',weight:.65,fillColor:censusColor(value),fillOpacity:.72}}
+function censusPopup(p){return `<div class="census-popup"><span>INDEC · Censo 2022</span><b>Radio ${p.radio}</b><dl><div><dt>Población*</dt><dd>${fmt(p.population)}</dd></div><div><dt>Hogares</dt><dd>${fmt(p.households)}</dd></div><div><dt>Viviendas</dt><dd>${fmt(p.dwellings)}</dd></div><div><dt>Hogares inquilinos</dt><dd>${p.rented_pct.toFixed(1).replace('.',',')}%</dd></div></dl><small>*En viviendas particulares</small></div>`}
+async function loadCensusData(){
+  try{
+    const response=await fetch('data/censo-2022-santa-fe-radios.geojson');
+    if(!response.ok)throw new Error('No se pudo cargar la capa censal');
+    censusData=await response.json();
+    censusLayer=L.geoJSON(censusData,{style:censusStyle,onEachFeature:(feature,layer)=>{layer.bindTooltip(`Radio ${feature.properties.radio}`,{sticky:true,className:'zone-tooltip'});layer.bindPopup(censusPopup(feature.properties),{maxWidth:280})}});
+    const t=censusData.totals;$('#cityPopulation').textContent=fmt(t.population_private_dwellings);$('#cityHouseholds').textContent=fmt(t.households);$('#cityRenters').textContent=t.rented_pct.toFixed(1).replace('.',',')+'%';
+    updateZoneCensus(zones.find(z=>z.id===state.selected));
+    applyMapMode();
+  }catch(error){
+    $('#censusRadio').textContent='La capa censal no está disponible en este momento.';
+    $$('.census-layer').forEach(button=>button.disabled=true);
+  }
+}
+function pointInRing(point,ring){let inside=false;const x=point[0],y=point[1];for(let i=0,j=ring.length-1;i<ring.length;j=i++){const xi=ring[i][0],yi=ring[i][1],xj=ring[j][0],yj=ring[j][1];const crosses=((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi);if(crosses)inside=!inside}return inside}
+function pointInPolygon(point,polygon){if(!pointInRing(point,polygon[0]))return false;return !polygon.slice(1).some(ring=>pointInRing(point,ring))}
+function featureContains(feature,lng,lat){const g=feature.geometry;if(g.type==='Polygon')return pointInPolygon([lng,lat],g.coordinates);if(g.type==='MultiPolygon')return g.coordinates.some(polygon=>pointInPolygon([lng,lat],polygon));return false}
+function censusForZone(z){return censusData?.features.find(feature=>featureContains(feature,z.lng,z.lat))}
+function updateZoneCensus(z){
+  if(!censusData){$('#censusRadio').textContent='Cargando radio censal…';return}
+  const feature=censusForZone(z);
+  if(!feature){$('#censusRadio').textContent='El punto de referencia no coincide con un radio disponible.';['#censusPopulation','#censusHouseholds','#censusDwellings','#censusRenters'].forEach(id=>$(id).textContent='—');return}
+  const p=feature.properties;$('#censusRadio').textContent=`Radio ${p.radio} · punto ubicado dentro de este radio`;$('#censusPopulation').textContent=fmt(p.population);$('#censusHouseholds').textContent=fmt(p.households);$('#censusDwellings').textContent=fmt(p.dwellings);$('#censusRenters').textContent=`${fmt(p.rented_households)} · ${p.rented_pct.toFixed(1).replace('.',',')}%`;
+}
+function updateLegend(){
+  const title=$('.legend-title span'),labels=$('.legend-labels');
+  if(state.metric==='population'){title.textContent='Población por radio';labels.innerHTML='<span>&lt; 300</span><span>600—899</span><span>≥ 1.200</span>';return}
+  if(state.metric==='renters'){title.textContent='Hogares inquilinos';labels.innerHTML='<span>&lt; 12%</span><span>20—26%</span><span>≥ 35%</span>';return}
+  const active=$(`.layer-button[data-metric="${state.metric}"]`);title.textContent=active?active.textContent.trim():'Potencial';labels.innerHTML='<span>Muy bajo</span><span>Moderado</span><span>Muy alto</span>';
+}
+function applyMapMode(){
+  if(isCensusMetric()){
+    markers.forEach(marker=>{if(map.hasLayer(marker))map.removeLayer(marker)});
+    if(censusLayer){if(!map.hasLayer(censusLayer))censusLayer.addTo(map);censusLayer.setStyle(censusStyle);$('#visibleStat').innerHTML=`<b>${censusData.features.length}</b><span>radios censales</span>`}
+    $('#mapSourceLink').href='https://redatam.indec.gob.ar/binarg/RpWebEngine.exe/Portal?BASE=CPV2022&lang=ESP';$('#mapSourceLink').textContent='Datos oficiales · INDEC ↗';
+  }else{
+    if(censusLayer&&map.hasLayer(censusLayer))map.removeLayer(censusLayer);
+    renderMarkers();$('#mapSourceLink').href='https://www.santafe.gob.ar/idesf/geoportal/paginas/servicios-OGC';$('#mapSourceLink').textContent='Límites oficiales · SCIT/IDESF ↗';
+  }
+  updateLegend();
+}
 
 function initMap(){
   map=L.map('map',{zoomControl:false,attributionControl:true}).setView([-31.637,-60.696],13);
@@ -29,10 +77,10 @@ function initMap(){
     layers:'scit_vecinales',format:'image/png',transparent:true,version:'1.1.1',
     attribution:'Límites vecinales: SCIT / IDESF',opacity:.72
   }).addTo(map);
-  L.control.zoom({position:'bottomright'}).addTo(map);renderMarkers();
+  L.control.zoom({position:'bottomright'}).addTo(map);renderMarkers();loadCensusData();
 }
-function renderMarkers(){let visible=0;zones.forEach(z=>{const score=calcScore(z),show=score>=state.minScore;if(show)visible++;const val=metricValue(z),color=colorFor(val);const html=`<div class="zone-marker ${z.id===state.selected?'selected':''}" style="background:${color}">${metricDisplay(z)}</div>`;if(!markers.has(z.id)){const marker=L.marker([z.lat,z.lng],{icon:L.divIcon({className:'',html,iconSize:[40,40],iconAnchor:[20,20]}),zIndexOffset:z.id===state.selected?500:0}).addTo(map);marker.bindTooltip(z.name,{direction:'top',offset:[0,-19],className:'zone-tooltip'});marker.on('click',()=>selectZone(z.id,true));markers.set(z.id,marker)}else{const marker=markers.get(z.id);marker.setIcon(L.divIcon({className:'',html,iconSize:[40,40],iconAnchor:[20,20]}));marker.setZIndexOffset(z.id===state.selected?500:0)}const marker=markers.get(z.id);if(show&&!map.hasLayer(marker))marker.addTo(map);if(!show&&map.hasLayer(marker))map.removeLayer(marker)});$('#visibleStat').innerHTML=`<b>${visible}</b><span>zonas con indicador</span>`}
-function selectZone(id,open=false){state.selected=id;const z=zones.find(x=>x.id===id);const score=calcScore(z);$('#zoneName').textContent=z.name;$('#zoneType').textContent=z.type;$('#zoneScore').textContent=score;$('#scoreRing').style.background=`conic-gradient(${colorFor(score)} 0 ${score}%,#e4ece8 ${score}%)`;$('#scoreLabel').textContent=score>=80?'Potencial muy alto':score>=65?'Potencial alto':score>=45?'Potencial moderado':'Potencial limitado';$('#scoreLabel').style.color=colorFor(score);$('#confidenceText').textContent=`Confianza ${z.observations>=80?'alta':z.observations>=40?'media':'baja'} · ${z.observations} observaciones`;$('#trendText').innerHTML=`<b>Tendencia ${z.delta>2?'positiva':z.delta<0?'negativa':'estable'}</b><br />${z.delta>=0?'Mejoró':'Retrocedió'} ${Math.abs(z.delta)} puntos en los últimos 12 meses`;$('#priceMetric').textContent=`US$ ${fmt(z.price)}`;$('#yieldMetric').textContent=z.yield.toFixed(1).replace('.',',')+'%';$('#growthMetric').textContent=(z.growth>=0?'+':'')+z.growth.toFixed(1).replace('.',',')+'%';$('#devMetric').textContent=z.development;$('#chartDelta').textContent=(z.delta>=0?'+':'')+z.delta;$('#chartDelta').className=z.delta>=0?'positive':'';renderChart(z);renderDrivers(z);renderMarkers();if(open){$('#insightPanel').classList.remove('closed');if(innerWidth<=850)map.panTo([z.lat,z.lng])}}
+function renderMarkers(){if(isCensusMetric())return;let visible=0;zones.forEach(z=>{const score=calcScore(z),show=score>=state.minScore;if(show)visible++;const val=metricValue(z),color=colorFor(val);const html=`<div class="zone-marker ${z.id===state.selected?'selected':''}" style="background:${color}">${metricDisplay(z)}</div>`;if(!markers.has(z.id)){const marker=L.marker([z.lat,z.lng],{icon:L.divIcon({className:'',html,iconSize:[40,40],iconAnchor:[20,20]}),zIndexOffset:z.id===state.selected?500:0}).addTo(map);marker.bindTooltip(z.name,{direction:'top',offset:[0,-19],className:'zone-tooltip'});marker.on('click',()=>selectZone(z.id,true));markers.set(z.id,marker)}else{const marker=markers.get(z.id);marker.setIcon(L.divIcon({className:'',html,iconSize:[40,40],iconAnchor:[20,20]}));marker.setZIndexOffset(z.id===state.selected?500:0)}const marker=markers.get(z.id);if(show&&!map.hasLayer(marker))marker.addTo(map);if(!show&&map.hasLayer(marker))map.removeLayer(marker)});$('#visibleStat').innerHTML=`<b>${visible}</b><span>zonas con indicador</span>`}
+function selectZone(id,open=false){state.selected=id;const z=zones.find(x=>x.id===id);const score=calcScore(z);$('#zoneName').textContent=z.name;$('#zoneType').textContent=z.type;$('#zoneScore').textContent=score;$('#scoreRing').style.background=`conic-gradient(${colorFor(score)} 0 ${score}%,#e4ece8 ${score}%)`;$('#scoreLabel').textContent=score>=80?'Potencial muy alto':score>=65?'Potencial alto':score>=45?'Potencial moderado':'Potencial limitado';$('#scoreLabel').style.color=colorFor(score);$('#confidenceText').textContent=`Confianza ${z.observations>=80?'alta':z.observations>=40?'media':'baja'} · ${z.observations} observaciones`;$('#trendText').innerHTML=`<b>Tendencia ${z.delta>2?'positiva':z.delta<0?'negativa':'estable'}</b><br />${z.delta>=0?'Mejoró':'Retrocedió'} ${Math.abs(z.delta)} puntos en los últimos 12 meses`;$('#priceMetric').textContent=`US$ ${fmt(z.price)}`;$('#yieldMetric').textContent=z.yield.toFixed(1).replace('.',',')+'%';$('#growthMetric').textContent=(z.growth>=0?'+':'')+z.growth.toFixed(1).replace('.',',')+'%';$('#devMetric').textContent=z.development;$('#chartDelta').textContent=(z.delta>=0?'+':'')+z.delta;$('#chartDelta').className=z.delta>=0?'positive':'';renderChart(z);renderDrivers(z);updateZoneCensus(z);renderMarkers();if(open){$('#insightPanel').classList.remove('closed');if(innerWidth<=850)map.panTo([z.lat,z.lng])}}
 function renderChart(z){const values=z.history,min=Math.min(...values)-2,max=Math.max(...values)+2,pts=values.map((v,i)=>`${i*(350/(values.length-1))+5},${90-(v-min)/(max-min)*72}`).join(' ');const end=pts.split(' ').at(-1).split(',');$('#scoreChart').innerHTML=`<defs><linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#53b889" stop-opacity=".28"/><stop offset="100%" stop-color="#53b889" stop-opacity="0"/></linearGradient></defs><path d="M ${pts} L 355 96 L 5 96 Z" class="chart-area"/><polyline points="${pts}" class="chart-line"/><circle cx="${end[0]}" cy="${end[1]}" r="4" class="chart-dot"/>`}
 function renderDrivers(z){$('#driversList').innerHTML=z.drivers.map(([label,val])=>`<div class="driver-row"><span>${label}</span><span class="impact-bar"><i style="width:${val}%"></i></span><b>${val}</b></div>`).join('')}
 function bestZone(){const visible=zones.filter(z=>calcScore(z)>=state.minScore).sort((a,b)=>calcScore(b)-calcScore(a))[0];if(!visible)return;selectZone(visible.id,true);map.flyTo([visible.lat,visible.lng],14,{duration:.7})}
@@ -48,7 +96,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   initMap();selectZone(state.selected);
   $('#strategy').addEventListener('change',e=>{state.strategy=e.target.value;renderMarkers();selectZone(state.selected)});
   $('#minScore').addEventListener('input',e=>{state.minScore=+e.target.value;$('#scoreOutput').textContent=e.target.value;renderMarkers()});
-  $$('.layer-button').forEach(b=>b.addEventListener('click',()=>{$$('.layer-button').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.metric=b.dataset.metric;renderMarkers();$('.legend-title span').textContent=b.textContent.trim()}));
+  $$('.layer-button').forEach(b=>b.addEventListener('click',()=>{$$('.layer-button').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.metric=b.dataset.metric;applyMapMode()}));
   $$('.nav-link').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.view)));
   $('#bestZoneButton').addEventListener('click',bestZone);$('#closePanel').addEventListener('click',()=>$('#insightPanel').classList.add('closed'));
   $('#rankingStrategy').addEventListener('change',e=>renderRanking(e.target.value));$('#runComparison').addEventListener('click',renderComparison);$('#closeComparison').addEventListener('click',()=>$('#comparisonResult').hidden=true);
