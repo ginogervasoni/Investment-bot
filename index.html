@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Nodo Santa Fe: inteligencia territorial para explorar oportunidades inmobiliarias en Santa Fe Capital." />
+    <title>Nodo Santa Fe · Inteligencia inmobiliaria</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://unpkg.com" />
+    <link rel="preconnect" href="https://tile.openstreetmap.org" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Nodo Santa Fe, inicio">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span><b>Nodo</b><small>Santa Fe</small></span>
+        </a>
+        <nav class="nav" aria-label="Navegación principal">
+          <button class="nav-link active" data-view="mapa">Mapa</button>
+          <button class="nav-link" data-view="zonas">Zonas</button>
+          <button class="nav-link" data-view="metodologia">Metodología</button>
+        </nav>
+        <div class="header-actions">
+          <span class="demo-pill"><i></i> Datos demostrativos</span>
+          <button class="icon-button" id="openInfo" aria-label="Información sobre los datos">i</button>
+        </div>
+      </header>
+
+      <main>
+        <section class="view active" id="view-mapa">
+          <div class="workspace">
+            <aside class="control-panel">
+              <div class="eyebrow"><span></span> Inteligencia territorial</div>
+              <h1>¿Dónde está el próximo movimiento?</h1>
+              <p class="intro">Explorá el potencial inmobiliario de Santa Fe por zona, estrategia y nivel de riesgo.</p>
+
+              <div class="field-group">
+                <label for="strategy">Tu estrategia</label>
+                <div class="select-wrap">
+                  <select id="strategy">
+                    <option value="balanced">Potencial equilibrado</option>
+                    <option value="rent">Renta residencial</option>
+                    <option value="growth">Valorización</option>
+                    <option value="development">Desarrollo inmobiliario</option>
+                    <option value="conservative">Inversión conservadora</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field-group">
+                <div class="label-row"><label for="minScore">Puntaje mínimo</label><output id="scoreOutput">45</output></div>
+                <input id="minScore" type="range" min="0" max="90" step="5" value="45" />
+                <div class="range-labels"><span>Todos</span><span>Alta convicción</span></div>
+              </div>
+
+              <div class="field-group">
+                <span class="field-label">Capa del mapa</span>
+                <div class="layer-grid" role="group" aria-label="Capa del mapa">
+                  <button class="layer-button active" data-metric="score"><span class="layer-icon">◎</span>Potencial</button>
+                  <button class="layer-button" data-metric="yield"><span class="layer-icon">%</span>Rentabilidad</button>
+                  <button class="layer-button" data-metric="growth"><span class="layer-icon">↗</span>Valorización</button>
+                  <button class="layer-button" data-metric="development"><span class="layer-icon">▦</span>Desarrollo</button>
+                  <button class="layer-button" data-metric="risk"><span class="layer-icon">△</span>Riesgo</button>
+                </div>
+              </div>
+
+              <button class="primary-button" id="bestZoneButton">Encontrar mejor zona <span>→</span></button>
+
+              <div class="source-note">
+                <span class="source-icon">✓</span>
+                <p><b>Transparencia primero</b><br />Cada indicador muestra su fuente, fecha y nivel de confianza.</p>
+              </div>
+            </aside>
+
+            <section class="map-stage" aria-label="Mapa de oportunidades inmobiliarias">
+              <div id="map"></div>
+              <div class="map-topline">
+                <div class="location-chip">Santa Fe Capital <span>⌄</span></div>
+                <div class="period-chip">Actualización demo · Sep 2026</div>
+              </div>
+              <div class="map-legend">
+                <div class="legend-title"><span>Potencial</span><button id="legendHelp" aria-label="Ayuda sobre la escala">?</button></div>
+                <div class="legend-scale"><i></i><i></i><i></i><i></i><i></i></div>
+                <div class="legend-labels"><span>Muy bajo</span><span>Moderado</span><span>Muy alto</span></div>
+              </div>
+              <div class="map-stat" id="visibleStat"><b>10</b><span>zonas visibles</span></div>
+            </section>
+
+            <aside class="insight-panel" id="insightPanel">
+              <div class="panel-handle"></div>
+              <div class="zone-heading">
+                <div>
+                  <span class="zone-kicker">Zona seleccionada</span>
+                  <h2 id="zoneName">Candioti Norte</h2>
+                  <p id="zoneType">Consolidada · Residencial mixta</p>
+                </div>
+                <button class="icon-button close-panel" id="closePanel" aria-label="Cerrar detalle">×</button>
+              </div>
+
+              <div class="score-hero">
+                <div class="score-ring" id="scoreRing"><strong id="zoneScore">82</strong><small>/100</small></div>
+                <div><span id="scoreLabel">Potencial muy alto</span><p id="confidenceText">Confianza alta · 124 observaciones</p></div>
+              </div>
+
+              <div class="trend-summary"><span class="trend-icon">↗</span><p id="trendText"><b>Tendencia positiva</b><br />Mejoró 6 puntos en los últimos 12 meses</p></div>
+
+              <div class="metric-grid">
+                <article><span>Precio mediano</span><b id="priceMetric">US$ 1.580</b><small>por m²</small></article>
+                <article><span>Renta bruta</span><b id="yieldMetric">5,9%</b><small>anual estimada</small></article>
+                <article><span>Valorización</span><b id="growthMetric">+8,4%</b><small>12 meses · USD</small></article>
+                <article><span>Desarrollo</span><b id="devMetric">76</b><small>índice /100</small></article>
+              </div>
+
+              <section class="mini-chart-card">
+                <div class="card-heading"><div><span>Evolución del puntaje</span><b>Últimos 12 meses</b></div><span id="chartDelta" class="positive">+6</span></div>
+                <svg id="scoreChart" viewBox="0 0 360 100" role="img" aria-label="Evolución del puntaje de la zona"></svg>
+              </section>
+
+              <section class="drivers">
+                <div class="card-heading"><b>Qué impulsa esta zona</b><span>Impacto</span></div>
+                <div id="driversList"></div>
+              </section>
+
+              <button class="secondary-button" id="compareCurrent">+ Agregar al comparador</button>
+              <p class="legal-note">Indicadores estimativos. No constituyen asesoramiento financiero ni garantizan valorización futura.</p>
+            </aside>
+          </div>
+        </section>
+
+        <section class="view content-view" id="view-zonas">
+          <div class="content-header">
+            <div><div class="eyebrow"><span></span> Ranking dinámico</div><h1>Zonas con mayor potencial</h1><p>El ranking cambia según tu estrategia. Seleccioná hasta tres zonas para compararlas.</p></div>
+            <div class="compact-select"><label for="rankingStrategy">Estrategia</label><select id="rankingStrategy"><option value="balanced">Equilibrada</option><option value="rent">Renta</option><option value="growth">Valorización</option><option value="development">Desarrollo</option><option value="conservative">Conservadora</option></select></div>
+          </div>
+          <div class="ranking-layout">
+            <div class="ranking-list" id="rankingList"></div>
+            <aside class="compare-drawer">
+              <span class="zone-kicker">Comparador</span>
+              <h2>Tu selección</h2>
+              <p>Elegí hasta tres zonas para ver sus diferencias.</p>
+              <div id="compareSelection" class="compare-selection"></div>
+              <button class="primary-button" id="runComparison" disabled>Comparar zonas <span>→</span></button>
+            </aside>
+          </div>
+          <section class="comparison-table-wrap" id="comparisonResult" hidden>
+            <div class="section-heading"><div><span class="zone-kicker">Lectura lado a lado</span><h2>Comparación de zonas</h2></div><button class="icon-button" id="closeComparison">×</button></div>
+            <div class="comparison-table" id="comparisonTable"></div>
+          </section>
+        </section>
+
+        <section class="view content-view" id="view-metodologia">
+          <div class="method-hero">
+            <div><div class="eyebrow"><span></span> Modelo transparente</div><h1>Una señal clara, construida con evidencia.</h1><p>Nodo combina datos territoriales, económicos y de mercado. Cada resultado conserva su origen, período y calidad.</p></div>
+            <div class="formula-card"><span>Puntaje general</span><strong>0—100</strong><p>Demanda + desarrollo + infraestructura + rentabilidad + valorización − riesgo</p></div>
+          </div>
+          <div class="method-grid">
+            <article><span class="method-num">30%</span><h3>Demanda</h3><p>Hogares, inquilinos, empleo, absorción y generadores de demanda.</p></article>
+            <article><span class="method-num">25%</span><h3>Desarrollo</h3><p>Permisos, superficie autorizada, obra pública y capacidad constructiva.</p></article>
+            <article><span class="method-num">20%</span><h3>Infraestructura</h3><p>Transporte, servicios, educación, salud y conectividad urbana.</p></article>
+            <article><span class="method-num">15%</span><h3>Rentabilidad</h3><p>Relación entre alquiler anual estimado y precio de adquisición.</p></article>
+            <article><span class="method-num">10%</span><h3>Valorización</h3><p>Evolución relativa de precios, demanda e inversiones cercanas.</p></article>
+            <article class="risk-card"><span class="method-num">−R</span><h3>Riesgo</h3><p>Exposición hídrica, oferta excesiva, baja muestra y datos antiguos.</p></article>
+          </div>
+          <div class="sources-section"><div><span class="zone-kicker">Fuentes previstas</span><h2>Trazabilidad desde el origen</h2></div><div class="source-tags"><span>IPEC Santa Fe</span><span>INDEC</span><span>Municipalidad</span><span>SCIT</span><span>BCRA</span><span>Colegio de Escribanos</span></div></div>
+          <div class="method-notice"><b>Estado de este MVP</b><p>Los valores actuales son simulados para demostrar el funcionamiento. Los círculos representan áreas de análisis aproximadas y no límites barriales oficiales. La siguiente etapa consiste en conectar conjuntos de datos oficiales y geometrías verificadas.</p></div>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="infoDialog">
+      <button class="dialog-close" aria-label="Cerrar">×</button>
+      <span class="zone-kicker">Acerca del prototipo</span>
+      <h2>Datos claros desde el primer día</h2>
+      <p>Esta versión permite probar el mapa, perfiles, filtros, fichas y comparaciones con información simulada. Ninguna cifra debe usarse todavía para tomar una decisión de inversión real.</p>
+      <div class="dialog-points"><p><i class="official"></i><span><b>Dato oficial</b>Publicado por un organismo público.</span></p><p><i class="market"></i><span><b>Dato de mercado</b>Proveniente de publicaciones autorizadas.</span></p><p><i class="estimate"></i><span><b>Estimación</b>Resultado de un cálculo documentado.</span></p></div>
+    </dialog>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="app.js"></script>
+  </body>
+</html>
