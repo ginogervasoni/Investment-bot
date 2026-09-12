@@ -26,7 +26,7 @@
           <button class="nav-link" data-view="metodologia">Metodología</button>
         </nav>
         <div class="header-actions">
-          <span class="demo-pill official-pill"><i></i> Paso 4 · Mercado</span>
+          <span class="demo-pill official-pill"><i></i> Paso 5 · Actualización mensual</span>
           <button class="icon-button" id="openInfo" aria-label="Información sobre los datos">i</button>
         </div>
       </header>
@@ -194,7 +194,7 @@
 
         <section class="view content-view market-view" id="view-mercado">
           <div class="market-hero">
-            <div><div class="eyebrow"><span></span> Oferta inmobiliaria · agosto 2026</div><h1>Precios reales, alcance explícito.</h1><p>Una lectura del mercado publicado en Santa Fe Capital. El precio por m² corresponde exclusivamente a departamentos en venta; el alquiler es la mediana mensual de los avisos.</p></div>
+            <div><div class="eyebrow"><span></span> Oferta inmobiliaria · <strong id="marketPeriodLabel">último período</strong></div><h1>Precios reales, alcance explícito.</h1><p>Una lectura del mercado publicado en Santa Fe Capital. El precio por m² corresponde exclusivamente a departamentos en venta; el alquiler es la mediana mensual de los avisos.</p></div>
             <div class="market-license"><span>Uso autorizado</span><strong>Datos abiertos con atribución</strong><p>TuLugar permite reutilización periodística, académica y comercial. Nodo conserva la fuente y publica únicamente indicadores agregados.</p></div>
           </div>
           <div class="market-city-kpis" aria-live="polite">
@@ -204,6 +204,13 @@
             <article><span>Venta mediana</span><b id="marketCitySale">—</b><small>todas las propiedades · USD</small></article>
             <article><span>Alquiler mediano</span><b id="marketCityRent">—</b><small>mensual · USD</small></article>
           </div>
+          <section class="market-pipeline" aria-live="polite">
+            <div class="pipeline-heading"><span class="pipeline-dot"></span><div><small>Paso 5 · Automatización</small><strong id="pipelineStatus">Comprobando estado…</strong></div></div>
+            <div><small>Frecuencia</small><b>Mensual · día 1</b><span>08:17 · Argentina</span></div>
+            <div><small>Última actualización</small><b id="pipelineLastUpdate">—</b><span id="pipelineFreshness">Validando fecha</span></div>
+            <div><small>Próximo control</small><b id="pipelineNextCheck">—</b><span>GitHub Actions</span></div>
+            <div><small>Cobertura validada</small><b id="pipelineCoverage">—</b><span>sin imputaciones</span></div>
+          </section>
           <section class="market-table-card">
             <div class="data-card-heading"><div><span>Coincidencias verificadas</span><h2>Barrios con datos comparables</h2></div><span class="official-badge market-badge">Precio de oferta</span></div>
             <div class="market-table" id="marketTable"><p>Cargando datos del mercado…</p></div>
@@ -276,7 +283,7 @@
             <article class="risk-card"><span class="method-num">−R</span><h3>Riesgo</h3><p>Exposición hídrica, oferta excesiva, baja muestra y datos antiguos.</p></article>
           </div>
           <div class="sources-section"><div><span class="zone-kicker">Fuentes incorporadas y previstas</span><h2>Trazabilidad desde el origen</h2></div><div class="source-tags"><span class="source-live">INDEC · incorporada</span><span class="source-live">SCIT · incorporada</span><span class="source-live">IPEC · incorporada</span><span class="source-live">TuLugar · incorporada</span><span>BCRA</span><span>Colegio de Escribanos</span></div></div>
-          <div class="method-notice step-complete"><b>Paso 4 completado · Precios de oferta</b><p>Se incorporaron medianas de venta, alquiler y USD/m² de departamentos desde los datos abiertos de TuLugar. La capa de precios solo colorea cuatro zonas con coincidencia territorial válida. Los puntajes, rentabilidades y valorizaciones continúan sin modificarse hasta contar con una serie histórica suficiente.</p></div>
+          <div class="method-notice step-complete"><b>Paso 5 completado · Actualización mensual</b><p>El mercado se controla automáticamente el primer día de cada mes. Antes de publicar, el proceso valida períodos, totales, precios, atribución y correspondencias territoriales. Si la fuente no cambia, no genera una actualización artificial.</p></div>
         </section>
       </main>
     </div>

@@ -20,6 +20,12 @@ const fmt=n=>new Intl.NumberFormat('es-AR').format(n);
 const money=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(n);
 const pct=n=>`${n>=0?'+':''}${n.toFixed(1).replace('.',',')}%`;
 const periodLabel=period=>{const [year,month]=period.split('-').map(Number);return new Intl.DateTimeFormat('es-AR',{month:'short',year:'numeric'}).format(new Date(year,month-1,1)).replace('.','')};
+const MARKET_REMOTE_URL='https://raw.githubusercontent.com/ginogervasoni/Investment-bot/main/data/market-santa-fe.json';
+
+function validMarketPayload(data){
+  const city=data?.city,zones=data?.zones;
+  return data?.attribution==='Fuente: TuLugar (tulugar.com)'&&city&&zones&&Number.isFinite(city.listings_total)&&city.listings_total===city.listings_sale+city.listings_rent&&Object.keys(zones).length>0;
+}
 
 async function loadConstructionData(){
   try{
@@ -31,9 +37,10 @@ async function loadConstructionData(){
 
 async function loadMarketData(){
   try{
-    const response=await fetch('data/market-santa-fe.json');
-    if(!response.ok)throw new Error(`HTTP ${response.status}`);
-    marketData=await response.json();renderMarketOverview();updateZoneMarket(zones.find(z=>z.id===state.selected));if(state.metric==='market')applyMapMode();
+    let response;
+    try{response=await fetch(`${MARKET_REMOTE_URL}?v=${Date.now()}`,{cache:'no-store'});if(!response.ok)throw new Error(`HTTP ${response.status}`);marketData=await response.json();if(!validMarketPayload(marketData))throw new Error('Datos remotos inválidos')}
+    catch(remoteError){response=await fetch('data/market-santa-fe.json');if(!response.ok)throw new Error(`HTTP ${response.status}`);marketData=await response.json();if(!validMarketPayload(marketData))throw new Error('Datos locales inválidos')}
+    renderMarketOverview();updateZoneMarket(zones.find(z=>z.id===state.selected));if(state.metric==='market')applyMapMode();
   }catch(error){console.error('No se pudo cargar el mercado',error);$('#marketZoneTitle').textContent='Mercado no disponible';$('#marketTable').innerHTML='<p>No fue posible cargar los datos del mercado.</p>'}
 }
 
@@ -48,6 +55,8 @@ function updateZoneMarket(z){
 function renderMarketOverview(){
   const city=marketData.city;$('#marketCityListings').textContent=fmt(city.listings_total);$('#marketCitySaleListings').textContent=fmt(city.listings_sale);$('#marketCityRentListings').textContent=fmt(city.listings_rent);$('#marketCitySale').textContent=`US$ ${fmt(Math.round(city.median_sale_usd))}`;$('#marketCityRent').textContent=`US$ ${fmt(Math.round(city.median_rent_usd_month))}`;$('#marketSnapshotDate').textContent=`Santa Fe Capital · ${city.snapshot_date.split('-').reverse().join('/')}`;$('#marketUpdated').textContent=`Fuente: TuLugar · snapshot ${city.snapshot_date.split('-').reverse().join('/')}`;
   const rows=Object.entries(marketData.zones).sort(([,a],[,b])=>b.apartment_price_usd_m2-a.apartment_price_usd_m2);
+  const latestPeriod=rows.map(([,row])=>row.period).sort().at(-1),generated=new Date(`${marketData.generated_at}T00:00:00Z`),ageDays=Math.max(0,Math.floor((Date.now()-generated.getTime())/86400000)),now=new Date(),nextCheck=new Date(now.getFullYear(),now.getMonth()+1,1);
+  $('#marketPeriodLabel').textContent=periodLabel(latestPeriod);$('#pipelineStatus').textContent='Automatización activa';$('#pipelineLastUpdate').textContent=marketData.generated_at.split('-').reverse().join('/');$('#pipelineFreshness').textContent=ageDays<=45?'Datos dentro del ciclo mensual':`Última actualización hace ${ageDays} días`;$('#pipelineNextCheck').textContent=new Intl.DateTimeFormat('es-AR',{day:'2-digit',month:'short',year:'numeric'}).format(nextCheck).replace('.','');$('#pipelineCoverage').textContent=`${rows.length}/${zones.length} zonas`;
   $('#marketTable').innerHTML=`<div class="market-table-grid"><div class="market-table-head">Zona</div><div class="market-table-head">Depto. USD/m²</div><div class="market-table-head">Venta mediana</div><div class="market-table-head">Alquiler mediano</div><div class="market-table-head">Muestra</div>${rows.map(([id,row])=>`<div class="market-zone-cell"><span class="market-swatch" style="background:${marketColor(row.apartment_price_usd_m2)}"></span><b>${zones.find(z=>z.id===id).name}</b><small>${row.source_neighborhood}${row.match==='spelling_variant'?' · variante de nombre':''}</small></div><div><b>US$ ${fmt(Math.round(row.apartment_price_usd_m2))}</b></div><div>US$ ${fmt(Math.round(row.median_sale_usd))}</div><div>${row.median_rent_usd_month?`US$ ${fmt(Math.round(row.median_rent_usd_month))}`:'Sin muestra'}</div><div>${fmt(row.listings_total)} avisos</div>`).join('')}</div>`;
 }
 

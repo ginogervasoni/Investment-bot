@@ -8,6 +8,7 @@ MVP de inteligencia territorial para explorar oportunidades inmobiliarias en San
 - 568 radios censales del gobierno local Santa Fe con indicadores del Censo 2022.
 - Panel de construcción con costo del m² de Gran Santa Fe y permisos de Santa Fe Capital publicados por IPEC.
 - Capa de precios de oferta y panel de mercado con datos autorizados de TuLugar para la ciudad y cuatro zonas compatibles.
+- Actualización automática mensual del mercado con validaciones y respaldo local.
 - Capas coropléticas de población y porcentaje de hogares inquilinos.
 - Cinco capas: potencial, rentabilidad, valorización, desarrollo y riesgo.
 - Perfiles de inversión con ponderaciones diferentes.
@@ -27,6 +28,8 @@ El Paso 4 agrega datos abiertos de mercado de TuLugar. La fotografía de ciudad 
 
 La capa de precio de oferta y el panel de mercado son reales. Los valores históricos de rentabilidad, valorización, desarrollo, riesgo y el puntaje compuesto continúan **simulados para demostración** y no fueron modificados con esta incorporación.
 
+El Paso 5 automatiza el conector de mercado. GitHub Actions lo ejecuta el primer día de cada mes a las 08:17 de Argentina, valida la integridad del resultado y guarda un nuevo commit solo cuando hay cambios reales. El sitio consulta el archivo vigente del repositorio y utiliza su copia publicada como respaldo si esa lectura externa falla.
+
 ## Ejecución local
 
 No requiere instalación. Servir la carpeta mediante cualquier servidor HTTP estático, por ejemplo:
@@ -39,8 +42,8 @@ Luego abrir `http://localhost:8080`.
 
 ## Próxima etapa
 
-1. Automatizar mensualmente la ejecución y validación de los cuatro conectores existentes.
+1. Extender la automatización a los conectores oficiales que tengan nuevas publicaciones.
 2. Ampliar la cobertura territorial con equivalencias verificadas entre barrios y vecinales.
 3. Obtener permisos georreferenciados para construir indicadores por vecinal.
 4. Acumular historia suficiente y recalibrar el puntaje con indicadores reales y pruebas retrospectivas.
-5. Agregar un panel administrativo y alertas de calidad.
+5. Agregar alertas de calidad para fallas o retrasos de las fuentes.

@@ -51,3 +51,15 @@ La fotografía de Santa Fe del 12 de septiembre de 2026 registra 6.081 avisos ac
 Las otras seis zonas de demostración quedan explícitamente sin dato; no se estiman ni se completan artificialmente. `scripts/extract_tulugar_market.py` descarga la fotografía de ciudad y las series mensuales de esos barrios, valida sus campos y genera únicamente el resumen agregado que utiliza la aplicación.
 
 Los importes son precios de oferta publicados, no precios de cierre de operaciones. Como la serie argentina comienza en 2026, esta etapa no calcula valorización anual ni altera todavía el puntaje compuesto, la rentabilidad o el riesgo simulados.
+
+## Paso 5 — Actualización y control de calidad
+
+`.github/workflows/update-market-data.yml` ejecuta el conector el primer día de cada mes a las 08:17 en `America/Argentina/Cordoba` y también permite una ejecución manual. El proceso:
+
+1. conserva el archivo anterior para comparar períodos;
+2. ejecuta `scripts/extract_tulugar_market.py`;
+3. valida el resultado con `scripts/validate_market_data.py`;
+4. comprueba que no retrocedan las fechas ni cambien las zonas autorizadas;
+5. crea un commit únicamente si el contenido real cambió.
+
+La validación exige que venta más alquiler coincidan con el total de avisos, que los precios sean positivos, que la atribución y los enlaces sean válidos y que las cuatro coincidencias territoriales permanezcan separadas de las seis zonas sin asignación. El sitio intenta leer la versión vigente de GitHub y conserva `data/market-santa-fe.json` como respaldo operativo.

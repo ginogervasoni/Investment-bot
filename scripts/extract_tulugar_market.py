@@ -30,6 +30,16 @@ ZONE_MATCHES = {
 }
 
 
+def update_catalog(payload: dict) -> None:
+    path = ROOT / "data" / "source-catalog.json"
+    catalog = json.loads(path.read_text(encoding="utf-8"))
+    source = next(item for item in catalog["sources"] if item["id"] == "tulugar_santa_fe_market")
+    source["latest_snapshot"] = payload["city"]["snapshot_date"]
+    source["latest_monthly_period"] = max(zone["period"] for zone in payload["zones"].values())
+    source["accessed_at"] = payload["generated_at"]
+    path.write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
 def download_rows(**params: str) -> list[dict[str, str]]:
     url = f"{BASE}?{urllib.parse.urlencode(params)}"
     request = urllib.request.Request(url, headers={"User-Agent": "Nodo-Santa-Fe/1.0"})
@@ -46,6 +56,7 @@ def number(value: str, *, integer: bool = False):
 
 
 def main() -> None:
+    previous = json.loads(OUT.read_text(encoding="utf-8")) if OUT.exists() else None
     snapshot = download_rows(country="argentina", dataset="snapshot")
     city = next(row for row in snapshot if row["city_slug"] == CITY_SLUG)
 
@@ -105,8 +116,16 @@ def main() -> None:
             "city_market": "https://tulugar.com/es/mercado/argentina/santa-fe",
         },
     }
-    OUT.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"Escrito {OUT} ({len(zones)} zonas con coincidencia válida)")
+    if previous:
+        comparable = {key: value for key, value in payload.items() if key != "generated_at"}
+        previous_comparable = {key: value for key, value in previous.items() if key != "generated_at"}
+        if comparable == previous_comparable:
+            payload["generated_at"] = previous["generated_at"]
+    rendered = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
+    changed = not OUT.exists() or OUT.read_text(encoding="utf-8") != rendered
+    OUT.write_text(rendered, encoding="utf-8")
+    update_catalog(payload)
+    print(f"{'Actualizado' if changed else 'Sin cambios'} {OUT} ({len(zones)} zonas con coincidencia válida)")
 
 
 if __name__ == "__main__":
