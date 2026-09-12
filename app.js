@@ -13,7 +13,7 @@ const zones = [
 
 const profiles={balanced:{demand:.30,development:.25,infrastructure:.20,yield:.15,growth:.10,risk:.18},rent:{demand:.32,development:.08,infrastructure:.20,yield:.30,growth:.10,risk:.20},growth:{demand:.24,development:.25,infrastructure:.16,yield:.08,growth:.27,risk:.18},development:{demand:.18,development:.38,infrastructure:.18,yield:.06,growth:.20,risk:.20},conservative:{demand:.27,development:.12,infrastructure:.28,yield:.16,growth:.07,risk:.32}};
 const state={metric:'score',strategy:'balanced',minScore:45,selected:'candioti-norte',compare:[]};
-let map,markers=new Map(),officialBoundaries,censusLayer,censusData,constructionData;
+let map,markers=new Map(),officialBoundaries,censusLayer,censusData,constructionData,marketData;
 
 const $=s=>document.querySelector(s); const $$=s=>[...document.querySelectorAll(s)];
 const fmt=n=>new Intl.NumberFormat('es-AR').format(n);
@@ -27,6 +27,28 @@ async function loadConstructionData(){
     if(!response.ok)throw new Error(`HTTP ${response.status}`);
     constructionData=await response.json();renderConstruction();
   }catch(error){console.error('No se pudo cargar la serie de construcción',error);$('#constructionCost').textContent='No disponible';$('#constructionUpdated').textContent='No fue posible cargar la serie oficial.'}
+}
+
+async function loadMarketData(){
+  try{
+    const response=await fetch('data/market-santa-fe.json');
+    if(!response.ok)throw new Error(`HTTP ${response.status}`);
+    marketData=await response.json();renderMarketOverview();updateZoneMarket(zones.find(z=>z.id===state.selected));if(state.metric==='market')applyMapMode();
+  }catch(error){console.error('No se pudo cargar el mercado',error);$('#marketZoneTitle').textContent='Mercado no disponible';$('#marketTable').innerHTML='<p>No fue posible cargar los datos del mercado.</p>'}
+}
+
+function marketForZone(z){return marketData?.zones?.[z.id]}
+function marketColor(value){if(value==null)return '#89969f';return value>=2000?'#175f4a':value>=1700?'#239669':value>=1400?'#53b889':value>=1000?'#e6b94c':'#e88935'}
+function updateZoneMarket(z){
+  const market=marketForZone(z),source=$('#marketZoneSource');
+  if(!market){$('#marketZoneTitle').textContent='Sin coincidencia territorial válida';['#marketPrice','#marketRent','#marketSale','#marketListings'].forEach(id=>$(id).textContent='—');source.href='https://tulugar.com/es/datos';return}
+  $('#marketZoneTitle').textContent=`${market.source_neighborhood} · ${periodLabel(market.period)}`;$('#marketPrice').textContent=`US$ ${fmt(Math.round(market.apartment_price_usd_m2))}`;$('#marketRent').textContent=market.median_rent_usd_month?`US$ ${fmt(Math.round(market.median_rent_usd_month))}`:'Sin muestra';$('#marketSale').textContent=`US$ ${fmt(Math.round(market.median_sale_usd))}`;$('#marketListings').textContent=fmt(market.listings_total);source.href=market.source_page;
+}
+
+function renderMarketOverview(){
+  const city=marketData.city;$('#marketCityListings').textContent=fmt(city.listings_total);$('#marketCitySaleListings').textContent=fmt(city.listings_sale);$('#marketCityRentListings').textContent=fmt(city.listings_rent);$('#marketCitySale').textContent=`US$ ${fmt(Math.round(city.median_sale_usd))}`;$('#marketCityRent').textContent=`US$ ${fmt(Math.round(city.median_rent_usd_month))}`;$('#marketSnapshotDate').textContent=`Santa Fe Capital · ${city.snapshot_date.split('-').reverse().join('/')}`;$('#marketUpdated').textContent=`Fuente: TuLugar · snapshot ${city.snapshot_date.split('-').reverse().join('/')}`;
+  const rows=Object.entries(marketData.zones).sort(([,a],[,b])=>b.apartment_price_usd_m2-a.apartment_price_usd_m2);
+  $('#marketTable').innerHTML=`<div class="market-table-grid"><div class="market-table-head">Zona</div><div class="market-table-head">Depto. USD/m²</div><div class="market-table-head">Venta mediana</div><div class="market-table-head">Alquiler mediano</div><div class="market-table-head">Muestra</div>${rows.map(([id,row])=>`<div class="market-zone-cell"><span class="market-swatch" style="background:${marketColor(row.apartment_price_usd_m2)}"></span><b>${zones.find(z=>z.id===id).name}</b><small>${row.source_neighborhood}${row.match==='spelling_variant'?' · variante de nombre':''}</small></div><div><b>US$ ${fmt(Math.round(row.apartment_price_usd_m2))}</b></div><div>US$ ${fmt(Math.round(row.median_sale_usd))}</div><div>${row.median_rent_usd_month?`US$ ${fmt(Math.round(row.median_rent_usd_month))}`:'Sin muestra'}</div><div>${fmt(row.listings_total)} avisos</div>`).join('')}</div>`;
 }
 
 function renderLineChart(target,rows,key){
@@ -52,9 +74,9 @@ function renderConstruction(){
   $('#costChartStart').textContent=periodLabel(costs[0].period);$('#costChartEnd').textContent=periodLabel(costs.at(-1).period);$('#permitsChartStart').textContent=periodLabel(permits[0].period);$('#permitsChartEnd').textContent=periodLabel(permits.at(-1).period);
 }
 function calcScore(z,profile=state.strategy){const p=profiles[profile];const yieldScore=Math.min(100,z.yield*12);const growthScore=Math.min(100,Math.max(0,z.growth*9));return Math.round(z.demand*p.demand+z.development*p.development+z.infrastructure*p.infrastructure+yieldScore*p.yield+growthScore*p.growth-z.risk*p.risk)}
-function metricValue(z){if(state.metric==='score')return calcScore(z);if(state.metric==='yield')return z.yield*12;if(state.metric==='growth')return z.growth*9;if(state.metric==='development')return z.development;if(state.metric==='risk')return 100-z.risk;return z.base}
+function metricValue(z){if(state.metric==='market')return marketForZone(z)?.apartment_price_usd_m2??null;if(state.metric==='score')return calcScore(z);if(state.metric==='yield')return z.yield*12;if(state.metric==='growth')return z.growth*9;if(state.metric==='development')return z.development;if(state.metric==='risk')return 100-z.risk;return z.base}
 function colorFor(v){return v>=80?'#239669':v>=65?'#53b889':v>=45?'#e6b94c':v>=25?'#e88935':'#cf5454'}
-function metricDisplay(z){if(state.metric==='yield')return z.yield.toFixed(1).replace('.',',')+'%';if(state.metric==='growth')return '+'+z.growth.toFixed(1).replace('.',',')+'%';if(state.metric==='risk')return z.risk;return Math.round(metricValue(z))}
+function metricDisplay(z){if(state.metric==='market'){const value=metricValue(z);return value==null?'S/D':value>=1000?`${(value/1000).toFixed(1)}k`:Math.round(value)}if(state.metric==='yield')return z.yield.toFixed(1).replace('.',',')+'%';if(state.metric==='growth')return '+'+z.growth.toFixed(1).replace('.',',')+'%';if(state.metric==='risk')return z.risk;return Math.round(metricValue(z))}
 function isCensusMetric(){return state.metric==='population'||state.metric==='renters'}
 function censusColor(value){
   if(state.metric==='renters')return value>=35?'#175f4a':value>=27?'#239669':value>=20?'#53b889':value>=12?'#e6b94c':'#cf5454';
@@ -90,6 +112,7 @@ function updateLegend(){
   const title=$('.legend-title span'),labels=$('.legend-labels');
   if(state.metric==='population'){title.textContent='Población por radio';labels.innerHTML='<span>&lt; 300</span><span>600—899</span><span>≥ 1.200</span>';return}
   if(state.metric==='renters'){title.textContent='Hogares inquilinos';labels.innerHTML='<span>&lt; 12%</span><span>20—26%</span><span>≥ 35%</span>';return}
+  if(state.metric==='market'){title.textContent='Deptos. USD/m²';labels.innerHTML='<span>Sin dato / bajo</span><span>US$ 1.400</span><span>≥ US$ 2.000</span>';return}
   const active=$(`.layer-button[data-metric="${state.metric}"]`);title.textContent=active?active.textContent.trim():'Potencial';labels.innerHTML='<span>Muy bajo</span><span>Moderado</span><span>Muy alto</span>';
 }
 function applyMapMode(){
@@ -99,7 +122,8 @@ function applyMapMode(){
     $('#mapSourceLink').href='https://redatam.indec.gob.ar/binarg/RpWebEngine.exe/Portal?BASE=CPV2022&lang=ESP';$('#mapSourceLink').textContent='Datos oficiales · INDEC ↗';
   }else{
     if(censusLayer&&map.hasLayer(censusLayer))map.removeLayer(censusLayer);
-    renderMarkers();$('#mapSourceLink').href='https://www.santafe.gob.ar/idesf/geoportal/paginas/servicios-OGC';$('#mapSourceLink').textContent='Límites oficiales · SCIT/IDESF ↗';
+    renderMarkers();
+    if(state.metric==='market'){$('#mapSourceLink').href='https://tulugar.com/es/datos';$('#mapSourceLink').textContent='Precios de oferta · TuLugar ↗'}else{$('#mapSourceLink').href='https://www.santafe.gob.ar/idesf/geoportal/paginas/servicios-OGC';$('#mapSourceLink').textContent='Límites oficiales · SCIT/IDESF ↗'}
   }
   updateLegend();
 }
@@ -113,8 +137,8 @@ function initMap(){
   }).addTo(map);
   L.control.zoom({position:'bottomright'}).addTo(map);renderMarkers();loadCensusData();
 }
-function renderMarkers(){if(isCensusMetric())return;let visible=0;zones.forEach(z=>{const score=calcScore(z),show=score>=state.minScore;if(show)visible++;const val=metricValue(z),color=colorFor(val);const html=`<div class="zone-marker ${z.id===state.selected?'selected':''}" style="background:${color}">${metricDisplay(z)}</div>`;if(!markers.has(z.id)){const marker=L.marker([z.lat,z.lng],{icon:L.divIcon({className:'',html,iconSize:[40,40],iconAnchor:[20,20]}),zIndexOffset:z.id===state.selected?500:0}).addTo(map);marker.bindTooltip(z.name,{direction:'top',offset:[0,-19],className:'zone-tooltip'});marker.on('click',()=>selectZone(z.id,true));markers.set(z.id,marker)}else{const marker=markers.get(z.id);marker.setIcon(L.divIcon({className:'',html,iconSize:[40,40],iconAnchor:[20,20]}));marker.setZIndexOffset(z.id===state.selected?500:0)}const marker=markers.get(z.id);if(show&&!map.hasLayer(marker))marker.addTo(map);if(!show&&map.hasLayer(marker))map.removeLayer(marker)});$('#visibleStat').innerHTML=`<b>${visible}</b><span>zonas con indicador</span>`}
-function selectZone(id,open=false){state.selected=id;const z=zones.find(x=>x.id===id);const score=calcScore(z);$('#zoneName').textContent=z.name;$('#zoneType').textContent=z.type;$('#zoneScore').textContent=score;$('#scoreRing').style.background=`conic-gradient(${colorFor(score)} 0 ${score}%,#e4ece8 ${score}%)`;$('#scoreLabel').textContent=score>=80?'Potencial muy alto':score>=65?'Potencial alto':score>=45?'Potencial moderado':'Potencial limitado';$('#scoreLabel').style.color=colorFor(score);$('#confidenceText').textContent=`Confianza ${z.observations>=80?'alta':z.observations>=40?'media':'baja'} · ${z.observations} observaciones`;$('#trendText').innerHTML=`<b>Tendencia ${z.delta>2?'positiva':z.delta<0?'negativa':'estable'}</b><br />${z.delta>=0?'Mejoró':'Retrocedió'} ${Math.abs(z.delta)} puntos en los últimos 12 meses`;$('#priceMetric').textContent=`US$ ${fmt(z.price)}`;$('#yieldMetric').textContent=z.yield.toFixed(1).replace('.',',')+'%';$('#growthMetric').textContent=(z.growth>=0?'+':'')+z.growth.toFixed(1).replace('.',',')+'%';$('#devMetric').textContent=z.development;$('#chartDelta').textContent=(z.delta>=0?'+':'')+z.delta;$('#chartDelta').className=z.delta>=0?'positive':'';renderChart(z);renderDrivers(z);updateZoneCensus(z);renderMarkers();if(open){$('#insightPanel').classList.remove('closed');if(innerWidth<=850)map.panTo([z.lat,z.lng])}}
+function renderMarkers(){if(isCensusMetric())return;let visible=0;zones.forEach(z=>{const score=calcScore(z),market=marketForZone(z),show=state.metric==='market'||score>=state.minScore;if(show&&(state.metric!=='market'||market))visible++;const val=metricValue(z),color=state.metric==='market'?marketColor(val):colorFor(val);const html=`<div class="zone-marker ${z.id===state.selected?'selected':''} ${state.metric==='market'&&!market?'no-data':''}" style="background:${color}">${metricDisplay(z)}</div>`;if(!markers.has(z.id)){const marker=L.marker([z.lat,z.lng],{icon:L.divIcon({className:'',html,iconSize:[40,40],iconAnchor:[20,20]}),zIndexOffset:z.id===state.selected?500:0}).addTo(map);marker.bindTooltip(z.name,{direction:'top',offset:[0,-19],className:'zone-tooltip'});marker.on('click',()=>selectZone(z.id,true));markers.set(z.id,marker)}else{const marker=markers.get(z.id);marker.setIcon(L.divIcon({className:'',html,iconSize:[40,40],iconAnchor:[20,20]}));marker.setZIndexOffset(z.id===state.selected?500:0)}const marker=markers.get(z.id);if(show&&!map.hasLayer(marker))marker.addTo(map);if(!show&&map.hasLayer(marker))map.removeLayer(marker)});$('#visibleStat').innerHTML=`<b>${visible}</b><span>${state.metric==='market'?'zonas con precio real':'zonas con indicador'}</span>`}
+function selectZone(id,open=false){state.selected=id;const z=zones.find(x=>x.id===id);const score=calcScore(z);$('#zoneName').textContent=z.name;$('#zoneType').textContent=z.type;$('#zoneScore').textContent=score;$('#scoreRing').style.background=`conic-gradient(${colorFor(score)} 0 ${score}%,#e4ece8 ${score}%)`;$('#scoreLabel').textContent=score>=80?'Potencial muy alto':score>=65?'Potencial alto':score>=45?'Potencial moderado':'Potencial limitado';$('#scoreLabel').style.color=colorFor(score);$('#confidenceText').textContent=`Confianza ${z.observations>=80?'alta':z.observations>=40?'media':'baja'} · ${z.observations} observaciones`;$('#trendText').innerHTML=`<b>Tendencia ${z.delta>2?'positiva':z.delta<0?'negativa':'estable'}</b><br />${z.delta>=0?'Mejoró':'Retrocedió'} ${Math.abs(z.delta)} puntos en los últimos 12 meses`;$('#priceMetric').textContent=`US$ ${fmt(z.price)}`;$('#yieldMetric').textContent=z.yield.toFixed(1).replace('.',',')+'%';$('#growthMetric').textContent=(z.growth>=0?'+':'')+z.growth.toFixed(1).replace('.',',')+'%';$('#devMetric').textContent=z.development;$('#chartDelta').textContent=(z.delta>=0?'+':'')+z.delta;$('#chartDelta').className=z.delta>=0?'positive':'';renderChart(z);renderDrivers(z);updateZoneCensus(z);updateZoneMarket(z);renderMarkers();if(open){$('#insightPanel').classList.remove('closed');if(innerWidth<=850)map.panTo([z.lat,z.lng])}}
 function renderChart(z){const values=z.history,min=Math.min(...values)-2,max=Math.max(...values)+2,pts=values.map((v,i)=>`${i*(350/(values.length-1))+5},${90-(v-min)/(max-min)*72}`).join(' ');const end=pts.split(' ').at(-1).split(',');$('#scoreChart').innerHTML=`<defs><linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#53b889" stop-opacity=".28"/><stop offset="100%" stop-color="#53b889" stop-opacity="0"/></linearGradient></defs><path d="M ${pts} L 355 96 L 5 96 Z" class="chart-area"/><polyline points="${pts}" class="chart-line"/><circle cx="${end[0]}" cy="${end[1]}" r="4" class="chart-dot"/>`}
 function renderDrivers(z){$('#driversList').innerHTML=z.drivers.map(([label,val])=>`<div class="driver-row"><span>${label}</span><span class="impact-bar"><i style="width:${val}%"></i></span><b>${val}</b></div>`).join('')}
 function bestZone(){const visible=zones.filter(z=>calcScore(z)>=state.minScore).sort((a,b)=>calcScore(b)-calcScore(a))[0];if(!visible)return;selectZone(visible.id,true);map.flyTo([visible.lat,visible.lng],14,{duration:.7})}
@@ -127,7 +151,7 @@ function renderComparison(){const selected=state.compare.map(id=>zones.find(z=>z
 function switchView(view){$$('.view').forEach(v=>v.classList.toggle('active',v.id===`view-${view}`));$$('.nav-link').forEach(b=>b.classList.toggle('active',b.dataset.view===view));if(view==='mapa')setTimeout(()=>map.invalidateSize(),50);if(view==='zonas'){renderRanking($('#rankingStrategy').value);renderCompareSelection()}}
 
 document.addEventListener('DOMContentLoaded',()=>{
-  initMap();loadConstructionData();selectZone(state.selected);
+  initMap();loadConstructionData();loadMarketData();selectZone(state.selected);
   $('#strategy').addEventListener('change',e=>{state.strategy=e.target.value;renderMarkers();selectZone(state.selected)});
   $('#minScore').addEventListener('input',e=>{state.minScore=+e.target.value;$('#scoreOutput').textContent=e.target.value;renderMarkers()});
   $$('.layer-button').forEach(b=>b.addEventListener('click',()=>{$$('.layer-button').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.metric=b.dataset.metric;applyMapMode()}));

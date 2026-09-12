@@ -35,4 +35,19 @@ El Censo no se actualiza mensualmente.
 
 El corte incorporado es julio de 2026 y los últimos meses son provisorios. La actualización se reproduce con `scripts/extract_ipec_construction.py`, que descarga las planillas, valida las filas de Santa Fe y recalcula variaciones acumuladas.
 
-La escala territorial es ciudad o aglomerado. IPEC no publica estas cifras por vecinal, de modo que la aplicación las muestra como contexto y no modifica con ellas los colores ni puntajes zonales. Los precios, alquileres, rentabilidades y puntajes actuales permanecen simulados.
+La escala territorial es ciudad o aglomerado. IPEC no publica estas cifras por vecinal, de modo que la aplicación las muestra como contexto y no modifica con ellas los colores ni puntajes zonales. En esta etapa, los indicadores zonales existentes todavía permanecían simulados.
+
+## Paso 4 — Mercado inmobiliario autorizado
+
+`market-santa-fe.json` contiene métricas agregadas obtenidas de los CSV abiertos de TuLugar. La fuente permite reutilización comercial con atribución; por eso la interfaz identifica a TuLugar y este repositorio no redistribuye los archivos completos como un catálogo alternativo.
+
+La fotografía de Santa Fe del 12 de septiembre de 2026 registra 6.081 avisos activos: 5.307 de venta y 774 de alquiler. La serie mensual barrial incorporada corresponde a agosto de 2026. Solo se enlazan coincidencias verificables:
+
+- Candioti Norte;
+- Centro;
+- Candioti Sur, documentado como variante ortográfica de Candioti Sud;
+- Barranquitas.
+
+Las otras seis zonas de demostración quedan explícitamente sin dato; no se estiman ni se completan artificialmente. `scripts/extract_tulugar_market.py` descarga la fotografía de ciudad y las series mensuales de esos barrios, valida sus campos y genera únicamente el resumen agregado que utiliza la aplicación.
+
+Los importes son precios de oferta publicados, no precios de cierre de operaciones. Como la serie argentina comienza en 2026, esta etapa no calcula valorización anual ni altera todavía el puntaje compuesto, la rentabilidad o el riesgo simulados.

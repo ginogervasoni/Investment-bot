@@ -55,6 +55,28 @@
       ],
       "purpose": "Citywide context for construction costs and intended future building activity",
       "limitations": "Los últimos meses son provisorios. La fuente no desagrega estos indicadores por vecinal; no deben utilizarse como valor barrial ni se incorporan aún al puntaje zonal."
+    },
+    {
+      "id": "tulugar_santa_fe_market",
+      "title": "Mercado inmobiliario de Santa Fe",
+      "publisher": "TuLugar",
+      "classification": "authorized-market-data-derived",
+      "open_data_url": "https://tulugar.com/es/datos",
+      "city_market_url": "https://tulugar.com/es/mercado/argentina/santa-fe",
+      "methodology_url": "https://tulugar.com/es/mercado/paraguay/metodologia",
+      "geographic_level": "ciudad y barrios con coincidencia nominal exacta",
+      "latest_snapshot": "2026-09-12",
+      "latest_monthly_period": "2026-08",
+      "accessed_at": "2026-09-12",
+      "license_and_use": "Reutilización periodística, académica y comercial autorizada con atribución a TuLugar. La aplicación publica métricas agregadas y no redistribuye los archivos completos como catálogo propio.",
+      "variables": [
+        "cantidad de avisos activos de venta y alquiler",
+        "mediana del precio de oferta de venta en USD",
+        "mediana del precio de oferta de departamentos en USD/m²",
+        "mediana del alquiler mensual en USD"
+      ],
+      "purpose": "Indicadores reales de oferta inmobiliaria para la ciudad y para cuatro zonas con correspondencia territorial verificable",
+      "limitations": "Son precios publicados, no precios de cierre. La serie argentina comienza en 2026. Solo se asocian barrios con coincidencia nominal exacta o una variante ortográfica documentada; no se imputan datos a las demás zonas ni se recalibra todavía el puntaje de inversión."
     }
   ]
 }

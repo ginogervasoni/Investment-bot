@@ -1,0 +1,90 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-09-12",
+  "classification": "authorized-market-data-derived",
+  "attribution": "Fuente: TuLugar (tulugar.com)",
+  "city": {
+    "name": "Santa Fe",
+    "snapshot_date": "2026-09-12",
+    "listings_total": 6081,
+    "listings_sale": 5307,
+    "listings_rent": 774,
+    "median_sale_usd": 90000.0,
+    "median_apartment_price_usd_m2": 920.79,
+    "median_rent_usd_month": 462.66
+  },
+  "zones": {
+    "candioti-norte": {
+      "source_neighborhood": "Candioti Norte",
+      "source_slug": "candioti-norte",
+      "match": "exact",
+      "period": "2026-08",
+      "listings_total": 187,
+      "listings_sale": 177,
+      "listings_rent": 10,
+      "median_sale_usd": 109000.0,
+      "apartment_price_usd_m2": 1960.0,
+      "median_rent_usd_month": 406.98,
+      "source_page": "https://tulugar.com/es/mercado/argentina/santa-fe/candioti-norte"
+    },
+    "centro": {
+      "source_neighborhood": "Centro",
+      "source_slug": "centro",
+      "match": "exact",
+      "period": "2026-08",
+      "listings_total": 249,
+      "listings_sale": 223,
+      "listings_rent": 26,
+      "median_sale_usd": 105000.0,
+      "apartment_price_usd_m2": 1657.9,
+      "median_rent_usd_month": 504.59,
+      "source_page": "https://tulugar.com/es/mercado/argentina/santa-fe/centro"
+    },
+    "candioti-sur": {
+      "source_neighborhood": "Candioti Sud",
+      "source_slug": "candioti-sud",
+      "match": "spelling_variant",
+      "period": "2026-08",
+      "listings_total": 141,
+      "listings_sale": 130,
+      "listings_rent": 11,
+      "median_sale_usd": 109333.5,
+      "apartment_price_usd_m2": 2161.33,
+      "median_rent_usd_month": 661.75,
+      "source_page": "https://tulugar.com/es/mercado/argentina/santa-fe/candioti-sud"
+    },
+    "barranquitas": {
+      "source_neighborhood": "Barranquitas",
+      "source_slug": "barranquitas",
+      "match": "exact",
+      "period": "2026-08",
+      "listings_total": 30,
+      "listings_sale": 24,
+      "listings_rent": 6,
+      "median_sale_usd": 87000.0,
+      "apartment_price_usd_m2": 1026.79,
+      "median_rent_usd_month": 397.05,
+      "source_page": "https://tulugar.com/es/mercado/argentina/santa-fe/barranquitas"
+    }
+  },
+  "unmatched_zone_ids": [
+    "constituyentes",
+    "guadalupe",
+    "puerto",
+    "nueva-pompeya",
+    "colastine-norte",
+    "alto-verde"
+  ],
+  "methodology": {
+    "price_type": "asking_prices",
+    "sale_m2_definition": "Mediana USD/m² de departamentos en venta",
+    "rent_definition": "Mediana mensual de avisos de alquiler, en USD",
+    "minimum_scope_rule": "Only exact neighborhood matches or documented spelling variants are assigned to app zones",
+    "limitations": "Son precios publicados, no precios finales de escritura. La serie mensual argentina comienza en 2026 y todavía no permite estimar valorización anual."
+  },
+  "sources": {
+    "open_data": "https://tulugar.com/es/datos",
+    "methodology": "https://tulugar.com/es/mercado/paraguay/metodologia",
+    "city_market": "https://tulugar.com/es/mercado/argentina/santa-fe"
+  }
+}

@@ -7,6 +7,7 @@ MVP de inteligencia territorial para explorar oportunidades inmobiliarias en San
 - Mapa interactivo basado en OpenStreetMap con límites vecinales oficiales de SCIT/IDESF.
 - 568 radios censales del gobierno local Santa Fe con indicadores del Censo 2022.
 - Panel de construcción con costo del m² de Gran Santa Fe y permisos de Santa Fe Capital publicados por IPEC.
+- Capa de precios de oferta y panel de mercado con datos autorizados de TuLugar para la ciudad y cuatro zonas compatibles.
 - Capas coropléticas de población y porcentaje de hogares inquilinos.
 - Cinco capas: potencial, rentabilidad, valorización, desarrollo y riesgo.
 - Perfiles de inversión con ponderaciones diferentes.
@@ -22,7 +23,9 @@ La base territorial utiliza la capa oficial `scit_vecinales` publicada por SCIT 
 
 La extracción selecciona el código de gobierno local `820147`. El Paso 3 incorpora las series mensuales del IPEC hasta julio de 2026: costo de construcción para Gran Santa Fe y superficie autorizada para el municipio Santa Fe. Estas cifras se muestran como contexto de ciudad o aglomerado y no se distribuyen artificialmente entre vecinales.
 
-Los valores económicos de precio, renta, valorización, desarrollo y puntaje continúan **simulados para demostración**.
+El Paso 4 agrega datos abiertos de mercado de TuLugar. La fotografía de ciudad del 12 de septiembre de 2026 contiene 6.081 avisos activos y la serie barrial cerrada corresponde a agosto de 2026. Se vincularon únicamente Candioti Norte, Centro, Candioti Sur —como variante ortográfica de Candioti Sud— y Barranquitas. Los datos representan precios publicados, no precios de cierre.
+
+La capa de precio de oferta y el panel de mercado son reales. Los valores históricos de rentabilidad, valorización, desarrollo, riesgo y el puntaje compuesto continúan **simulados para demostración** y no fueron modificados con esta incorporación.
 
 ## Ejecución local
 
@@ -36,8 +39,8 @@ Luego abrir `http://localhost:8080`.
 
 ## Próxima etapa
 
-1. Automatizar mensualmente la ejecución y validación de los conectores existentes.
-2. Incorporar precios y alquileres desde una fuente de mercado autorizada.
+1. Automatizar mensualmente la ejecución y validación de los cuatro conectores existentes.
+2. Ampliar la cobertura territorial con equivalencias verificadas entre barrios y vecinales.
 3. Obtener permisos georreferenciados para construir indicadores por vecinal.
-4. Recalibrar el puntaje con indicadores reales y pruebas históricas.
+4. Acumular historia suficiente y recalibrar el puntaje con indicadores reales y pruebas retrospectivas.
 5. Agregar un panel administrativo y alertas de calidad.

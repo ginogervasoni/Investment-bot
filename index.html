@@ -21,11 +21,12 @@
         <nav class="nav" aria-label="Navegación principal">
           <button class="nav-link active" data-view="mapa">Mapa</button>
           <button class="nav-link" data-view="zonas">Zonas</button>
+          <button class="nav-link" data-view="mercado">Mercado</button>
           <button class="nav-link" data-view="construccion">Construcción</button>
           <button class="nav-link" data-view="metodologia">Metodología</button>
         </nav>
         <div class="header-actions">
-          <span class="demo-pill official-pill"><i></i> Paso 3 · IPEC</span>
+          <span class="demo-pill official-pill"><i></i> Paso 4 · Mercado</span>
           <button class="icon-button" id="openInfo" aria-label="Información sobre los datos">i</button>
         </div>
       </header>
@@ -67,6 +68,7 @@
                   <button class="layer-button" data-metric="risk"><span class="layer-icon">△</span>Riesgo</button>
                   <button class="layer-button census-layer" data-metric="population"><span class="layer-icon">●</span>Población</button>
                   <button class="layer-button census-layer" data-metric="renters"><span class="layer-icon">⌂</span>Inquilinos</button>
+                  <button class="layer-button market-layer" data-metric="market"><span class="layer-icon">$</span>Precio oferta</button>
                 </div>
               </div>
 
@@ -91,7 +93,7 @@
               <div id="map"></div>
               <div class="map-topline">
                 <div class="location-chip">Santa Fe Capital <span>⌄</span></div>
-                <div class="period-chip">SCIT + Censo 2022 + IPEC · Mercado demo</div>
+                <div class="period-chip">SCIT + INDEC + IPEC + Mercado ago 2026</div>
               </div>
               <div class="map-legend">
                 <div class="legend-title"><span>Potencial</span><button id="legendHelp" aria-label="Ayuda sobre la escala">?</button></div>
@@ -140,6 +142,19 @@
                 <small>*Población en viviendas particulares. Es el radio que contiene el punto, no el total de la vecinal.</small>
               </section>
 
+              <section class="zone-market-card" aria-live="polite">
+                <div class="market-data-heading"><span>Dato de mercado</span><b>TuLugar · oferta</b></div>
+                <h3 id="marketZoneTitle">Cargando mercado…</h3>
+                <div class="market-metric-grid">
+                  <div><span>Depto. USD/m²</span><b id="marketPrice">—</b></div>
+                  <div><span>Alquiler mediano</span><b id="marketRent">—</b></div>
+                  <div><span>Mediana de venta</span><b id="marketSale">—</b></div>
+                  <div><span>Avisos observados</span><b id="marketListings">—</b></div>
+                </div>
+                <a id="marketZoneSource" href="https://tulugar.com/es/datos" target="_blank" rel="noopener">Fuente y metodología ↗</a>
+                <small>Precios publicados, no valores finales de escritura. Solo se muestra cuando la zona coincide con un barrio de la fuente.</small>
+              </section>
+
               <section class="mini-chart-card">
                 <div class="card-heading"><div><span>Evolución del puntaje</span><b>Últimos 12 meses</b></div><span id="chartDelta" class="positive">+6</span></div>
                 <svg id="scoreChart" viewBox="0 0 360 100" role="img" aria-label="Evolución del puntaje de la zona"></svg>
@@ -175,6 +190,31 @@
             <div class="section-heading"><div><span class="zone-kicker">Lectura lado a lado</span><h2>Comparación de zonas</h2></div><button class="icon-button" id="closeComparison">×</button></div>
             <div class="comparison-table" id="comparisonTable"></div>
           </section>
+        </section>
+
+        <section class="view content-view market-view" id="view-mercado">
+          <div class="market-hero">
+            <div><div class="eyebrow"><span></span> Oferta inmobiliaria · agosto 2026</div><h1>Precios reales, alcance explícito.</h1><p>Una lectura del mercado publicado en Santa Fe Capital. El precio por m² corresponde exclusivamente a departamentos en venta; el alquiler es la mediana mensual de los avisos.</p></div>
+            <div class="market-license"><span>Uso autorizado</span><strong>Datos abiertos con atribución</strong><p>TuLugar permite reutilización periodística, académica y comercial. Nodo conserva la fuente y publica únicamente indicadores agregados.</p></div>
+          </div>
+          <div class="market-city-kpis" aria-live="polite">
+            <article><span>Oferta monitoreada</span><b id="marketCityListings">—</b><small id="marketSnapshotDate">Santa Fe Capital</small></article>
+            <article><span>En venta</span><b id="marketCitySaleListings">—</b><small>avisos activos</small></article>
+            <article><span>En alquiler</span><b id="marketCityRentListings">—</b><small>avisos activos</small></article>
+            <article><span>Venta mediana</span><b id="marketCitySale">—</b><small>todas las propiedades · USD</small></article>
+            <article><span>Alquiler mediano</span><b id="marketCityRent">—</b><small>mensual · USD</small></article>
+          </div>
+          <section class="market-table-card">
+            <div class="data-card-heading"><div><span>Coincidencias verificadas</span><h2>Barrios con datos comparables</h2></div><span class="official-badge market-badge">Precio de oferta</span></div>
+            <div class="market-table" id="marketTable"><p>Cargando datos del mercado…</p></div>
+          </section>
+          <section class="market-method-card">
+            <div><span class="zone-kicker">Regla de cobertura</span><h2>Sin equivalencias forzadas</h2></div>
+            <p><b>4 zonas con coincidencia válida.</b> Centro, Candioti Norte, Candioti Sur —publicado como Candioti Sud— y Barranquitas.</p>
+            <p><b>6 zonas sin asignación.</b> Constituyentes, Guadalupe, Puerto, Nueva Pompeya, Colastiné Norte y Alto Verde quedan sin dato hasta obtener una coincidencia territorial inequívoca.</p>
+            <p><b>El puntaje no cambia todavía.</b> La serie argentina comienza en 2026 y aún no alcanza para estimar valorización anual ni rendimiento de forma robusta.</p>
+          </section>
+          <div class="construction-source-row"><span id="marketUpdated">Fuente: TuLugar (tulugar.com)</span><div><a href="https://tulugar.com/es/datos" target="_blank" rel="noopener">Datos abiertos ↗</a><a href="https://tulugar.com/es/mercado/paraguay/metodologia" target="_blank" rel="noopener">Metodología ↗</a></div></div>
         </section>
 
         <section class="view content-view construction-view" id="view-construccion">
@@ -235,8 +275,8 @@
             <article><span class="method-num">10%</span><h3>Valorización</h3><p>Evolución relativa de precios, demanda e inversiones cercanas.</p></article>
             <article class="risk-card"><span class="method-num">−R</span><h3>Riesgo</h3><p>Exposición hídrica, oferta excesiva, baja muestra y datos antiguos.</p></article>
           </div>
-          <div class="sources-section"><div><span class="zone-kicker">Fuentes incorporadas y previstas</span><h2>Trazabilidad desde el origen</h2></div><div class="source-tags"><span class="source-live">INDEC · incorporada</span><span class="source-live">SCIT · incorporada</span><span class="source-live">IPEC · incorporada</span><span>Mercado autorizado</span><span>BCRA</span><span>Colegio de Escribanos</span></div></div>
-          <div class="method-notice step-complete"><b>Paso 3 completado · Construcción</b><p>Se incorporaron costos mensuales de Gran Santa Fe y superficie autorizada del municipio Santa Fe publicados por IPEC. Se muestran como contexto de ciudad y aglomerado; no se asignan a vecinales. Los puntajes, precios, rentabilidades y tendencias de mercado continúan siendo demostrativos.</p></div>
+          <div class="sources-section"><div><span class="zone-kicker">Fuentes incorporadas y previstas</span><h2>Trazabilidad desde el origen</h2></div><div class="source-tags"><span class="source-live">INDEC · incorporada</span><span class="source-live">SCIT · incorporada</span><span class="source-live">IPEC · incorporada</span><span class="source-live">TuLugar · incorporada</span><span>BCRA</span><span>Colegio de Escribanos</span></div></div>
+          <div class="method-notice step-complete"><b>Paso 4 completado · Precios de oferta</b><p>Se incorporaron medianas de venta, alquiler y USD/m² de departamentos desde los datos abiertos de TuLugar. La capa de precios solo colorea cuatro zonas con coincidencia territorial válida. Los puntajes, rentabilidades y valorizaciones continúan sin modificarse hasta contar con una serie histórica suficiente.</p></div>
         </section>
       </main>
     </div>
@@ -245,7 +285,7 @@
       <button class="dialog-close" aria-label="Cerrar">×</button>
       <span class="zone-kicker">Acerca del prototipo</span>
       <h2>Datos claros desde el primer día</h2>
-      <p>La geografía vecinal proviene de SCIT/IDESF, los indicadores demográficos del Censo 2022 del INDEC y el contexto mensual de construcción de IPEC. Los puntajes, precios, rentabilidades y tendencias de mercado todavía son simulados.</p>
+      <p>La geografía vecinal proviene de SCIT/IDESF, los indicadores demográficos del Censo 2022 del INDEC, la construcción de IPEC y los precios de oferta autorizados de TuLugar. Los puntajes, rentabilidades y valorizaciones todavía son demostrativos.</p>
       <div class="dialog-points"><p><i class="official"></i><span><b>Dato oficial</b>Publicado por un organismo público.</span></p><p><i class="market"></i><span><b>Dato de mercado</b>Proveniente de publicaciones autorizadas.</span></p><p><i class="estimate"></i><span><b>Estimación</b>Resultado de un cálculo documentado.</span></p></div>
     </dialog>
 
