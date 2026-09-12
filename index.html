@@ -24,7 +24,7 @@
           <button class="nav-link" data-view="metodologia">Metodología</button>
         </nav>
         <div class="header-actions">
-          <span class="demo-pill official-pill"><i></i> Paso 1 · Límites oficiales</span>
+          <span class="demo-pill official-pill"><i></i> Paso 2 · Censo 2022</span>
           <button class="icon-button" id="openInfo" aria-label="Información sobre los datos">i</button>
         </div>
       </header>
@@ -64,6 +64,8 @@
                   <button class="layer-button" data-metric="growth"><span class="layer-icon">↗</span>Valorización</button>
                   <button class="layer-button" data-metric="development"><span class="layer-icon">▦</span>Desarrollo</button>
                   <button class="layer-button" data-metric="risk"><span class="layer-icon">△</span>Riesgo</button>
+                  <button class="layer-button census-layer" data-metric="population"><span class="layer-icon">●</span>Población</button>
+                  <button class="layer-button census-layer" data-metric="renters"><span class="layer-icon">⌂</span>Inquilinos</button>
                 </div>
               </div>
 
@@ -73,13 +75,22 @@
                 <span class="source-icon">✓</span>
                 <p><b>Transparencia primero</b><br />Cada indicador muestra su fuente, fecha y nivel de confianza.</p>
               </div>
+              <section class="census-overview" aria-label="Resumen del Censo 2022 para Santa Fe">
+                <div><span>INDEC · Censo 2022</span><b>Datos oficiales</b></div>
+                <dl>
+                  <div><dt>Población*</dt><dd id="cityPopulation">405.264</dd></div>
+                  <div><dt>Hogares</dt><dd id="cityHouseholds">149.903</dd></div>
+                  <div><dt>Inquilinos</dt><dd id="cityRenters">23,4%</dd></div>
+                </dl>
+                <small>*En viviendas particulares del gobierno local Santa Fe.</small>
+              </section>
             </aside>
 
             <section class="map-stage" aria-label="Mapa de oportunidades inmobiliarias">
               <div id="map"></div>
               <div class="map-topline">
                 <div class="location-chip">Santa Fe Capital <span>⌄</span></div>
-                <div class="period-chip">Geografía oficial SCIT/IDESF · Puntajes demo</div>
+                <div class="period-chip">SCIT + Censo 2022 · Mercado demo</div>
               </div>
               <div class="map-legend">
                 <div class="legend-title"><span>Potencial</span><button id="legendHelp" aria-label="Ayuda sobre la escala">?</button></div>
@@ -87,7 +98,7 @@
                 <div class="legend-labels"><span>Muy bajo</span><span>Moderado</span><span>Muy alto</span></div>
               </div>
               <div class="map-stat" id="visibleStat"><b>10</b><span>zonas visibles</span></div>
-              <a class="official-map-source" href="https://www.santafe.gob.ar/idesf/geoportal/paginas/servicios-OGC" target="_blank" rel="noopener">Límites oficiales · SCIT/IDESF ↗</a>
+              <a class="official-map-source" id="mapSourceLink" href="https://www.santafe.gob.ar/idesf/geoportal/paginas/servicios-OGC" target="_blank" rel="noopener">Límites oficiales · SCIT/IDESF ↗</a>
             </section>
 
             <aside class="insight-panel" id="insightPanel">
@@ -114,6 +125,19 @@
                 <article><span>Valorización</span><b id="growthMetric">+8,4%</b><small>12 meses · USD</small></article>
                 <article><span>Desarrollo</span><b id="devMetric">76</b><small>índice /100</small></article>
               </div>
+
+              <section class="zone-census-card" aria-live="polite">
+                <div class="official-data-heading"><span>Dato oficial</span><b>INDEC · Censo 2022</b></div>
+                <h3>Radio censal del punto de referencia</h3>
+                <p id="censusRadio">Cargando radio censal…</p>
+                <div class="census-metric-grid">
+                  <div><span>Población*</span><b id="censusPopulation">—</b></div>
+                  <div><span>Hogares</span><b id="censusHouseholds">—</b></div>
+                  <div><span>Viviendas</span><b id="censusDwellings">—</b></div>
+                  <div><span>Hogares inquilinos</span><b id="censusRenters">—</b></div>
+                </div>
+                <small>*Población en viviendas particulares. Es el radio que contiene el punto, no el total de la vecinal.</small>
+              </section>
 
               <section class="mini-chart-card">
                 <div class="card-heading"><div><span>Evolución del puntaje</span><b>Últimos 12 meses</b></div><span id="chartDelta" class="positive">+6</span></div>
@@ -165,8 +189,8 @@
             <article><span class="method-num">10%</span><h3>Valorización</h3><p>Evolución relativa de precios, demanda e inversiones cercanas.</p></article>
             <article class="risk-card"><span class="method-num">−R</span><h3>Riesgo</h3><p>Exposición hídrica, oferta excesiva, baja muestra y datos antiguos.</p></article>
           </div>
-          <div class="sources-section"><div><span class="zone-kicker">Fuentes previstas</span><h2>Trazabilidad desde el origen</h2></div><div class="source-tags"><span>IPEC Santa Fe</span><span>INDEC</span><span>Municipalidad</span><span>SCIT</span><span>BCRA</span><span>Colegio de Escribanos</span></div></div>
-          <div class="method-notice step-complete"><b>Paso 1 completado · Base territorial</b><p>El mapa muestra la capa oficial “Vecinales” publicada por el Servicio de Catastro e Información Territorial mediante IDESF. Los indicadores económicos continúan siendo demostrativos hasta incorporar el Censo 2022 en el Paso 2.</p></div>
+          <div class="sources-section"><div><span class="zone-kicker">Fuentes incorporadas y previstas</span><h2>Trazabilidad desde el origen</h2></div><div class="source-tags"><span class="source-live">INDEC · incorporada</span><span class="source-live">SCIT · incorporada</span><span>IPEC Santa Fe</span><span>Municipalidad</span><span>BCRA</span><span>Colegio de Escribanos</span></div></div>
+          <div class="method-notice step-complete"><b>Paso 2 completado · Censo 2022</b><p>El mapa ya contiene 568 radios del gobierno local Santa Fe con población en viviendas particulares, viviendas, hogares y tenencia de la vivienda. Los valores se agregaron desde la base REDATAM del INDEC. Los puntajes y métricas de mercado siguen siendo demostrativos.</p></div>
         </section>
       </main>
     </div>
@@ -175,7 +199,7 @@
       <button class="dialog-close" aria-label="Cerrar">×</button>
       <span class="zone-kicker">Acerca del prototipo</span>
       <h2>Datos claros desde el primer día</h2>
-      <p>La geografía proviene del servicio oficial SCIT/IDESF. Los puntajes, precios, rentabilidades y tendencias todavía son simulados y no deben utilizarse para tomar una decisión de inversión real.</p>
+      <p>La geografía vecinal proviene de SCIT/IDESF y los indicadores demográficos de la base REDATAM del Censo 2022 del INDEC. Los puntajes, precios, rentabilidades y tendencias de mercado todavía son simulados.</p>
       <div class="dialog-points"><p><i class="official"></i><span><b>Dato oficial</b>Publicado por un organismo público.</span></p><p><i class="market"></i><span><b>Dato de mercado</b>Proveniente de publicaciones autorizadas.</span></p><p><i class="estimate"></i><span><b>Estimación</b>Resultado de un cálculo documentado.</span></p></div>
     </dialog>
 
