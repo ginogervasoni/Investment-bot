@@ -16,6 +16,27 @@
       "accessed_at": "2026-09-12",
       "purpose": "Official territorial boundaries displayed on the investment map",
       "limitations": "WMS supplies a rendered image layer. Individual vector geometries and attributes require an authorized downloadable dataset or WFS endpoint."
+    },
+    {
+      "id": "indec_censo_2022_radios_santa_fe",
+      "title": "Censo Nacional de Población, Hogares y Viviendas 2022",
+      "publisher": "Instituto Nacional de Estadística y Censos (INDEC)",
+      "classification": "official-statistics-derived",
+      "official_database": "https://redatam.indec.gob.ar/binarg/RpWebEngine.exe/Portal?BASE=CPV2022&lang=ESP",
+      "processing_distribution": "https://source.coop/nlebovits/censo-argentino/2022",
+      "geography_source": "Cartografía de radios censales de Argentina · CONICET",
+      "geographic_level": "radio censal",
+      "local_government_code": "820147",
+      "census_date": "2022-05-18",
+      "accessed_at": "2026-09-12",
+      "variables": [
+        "POB_TOT_P · población en viviendas particulares",
+        "VIV_TOT_P · viviendas particulares",
+        "VIVIENDA_V02 · condición de ocupación",
+        "HOGAR_H22 · propiedad o tenencia de la vivienda"
+      ],
+      "purpose": "Demographic and housing indicators by census tract for the local government of Santa Fe",
+      "limitations": "Census values describe 2022 and are not monthly indicators. The neighborhood reference points are associated with the census tract that contains each point; they are not totals for an entire vecinal."
     }
   ]
 }
