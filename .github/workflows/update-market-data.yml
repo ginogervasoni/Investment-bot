@@ -7,6 +7,7 @@ on:
       - ".github/workflows/update-market-data.yml"
       - "scripts/extract_tulugar_market.py"
       - "scripts/extract_mercadolibre_market.py"
+      - "scripts/sync_meli_secret.py"
       - "scripts/extract_ipec_construction.py"
       - "scripts/extract_affordability.py"
       - "scripts/validate_market_data.py"
@@ -20,6 +21,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 concurrency:
   group: update-santa-fe-real-estate-data
@@ -31,6 +33,11 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+
+      - name: Sync Mercado Libre OAuth credential
+        env:
+          MELI_CLIENT_SECRET: ${{ secrets.MELI_CLIENT_SECRET }}
+        run: python scripts/sync_meli_secret.py
 
       - name: Set up Python
         uses: actions/setup-python@v5
