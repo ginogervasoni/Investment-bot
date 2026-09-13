@@ -105,9 +105,9 @@
       "city_market_url": "https://tulugar.com/es/mercado/argentina/santa-fe",
       "methodology_url": "https://tulugar.com/es/mercado/paraguay/metodologia",
       "geographic_level": "ciudad y barrios con coincidencia nominal exacta",
-      "latest_snapshot": "2026-09-12",
+      "latest_snapshot": "2026-09-13",
       "latest_monthly_period": "2026-08",
-      "accessed_at": "2026-09-12",
+      "accessed_at": "2026-09-13",
       "license_and_use": "Reutilización periodística, académica y comercial autorizada con atribución a TuLugar. La aplicación publica métricas agregadas y no redistribuye los archivos completos como catálogo propio.",
       "variables": [
         "cantidad de avisos activos de venta y alquiler",
