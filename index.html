@@ -5,13 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Nodo Santa Fe: inteligencia territorial para explorar oportunidades inmobiliarias en Santa Fe Capital." />
     <title>Nodo Santa Fe · Inteligencia inmobiliaria</title>
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://unpkg.com" />
     <link rel="preconnect" href="https://tile.openstreetmap.org" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
+    <main class="oauth-callback" id="oauthCallback" hidden aria-live="polite">
+      <a class="brand oauth-brand" href="/" aria-label="Volver a Nodo Santa Fe"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span><b>Nodo</b><small>Santa Fe</small></span></a>
+      <section class="oauth-panel">
+        <p class="eyebrow"><span></span> Mercado Libre API</p>
+        <h1>Autorización recibida</h1>
+        <p id="oauthMessage">Estamos preparando el acceso seguro a los datos agregados.</p>
+        <div class="oauth-code" id="oauthCodeWrap" hidden><label for="oauthCode">Código temporal</label><div><input id="oauthCode" readonly /><button id="copyOauthCode" type="button">Copiar código</button></div><small>Este código vence pronto. Guardalo directamente como secreto <b>MELI_AUTH_CODE</b> en GitHub; no lo envíes por chat.</small></div>
+        <a class="oauth-back" href="/">Volver a Nodo Santa Fe</a>
+      </section>
+    </main>
     <div class="app-shell">
       <header class="topbar">
         <a class="brand" href="#" aria-label="Nodo Santa Fe, inicio">
@@ -228,7 +238,7 @@
               <div><span class="zone-kicker">Paso 8 · Segunda fuente de mercado</span><h2>Mercado Libre Inmuebles</h2></div>
               <span class="meli-state pending" id="meliState"><i></i>Pendiente de autorización</span>
             </div>
-            <p class="meli-intro" id="meliIntro">El conector oficial está preparado. Comenzará a publicar estadísticas agregadas cuando se autorice la aplicación mediante OAuth.</p>
+            <p class="meli-intro" id="meliIntro">El conector oficial está preparado. La autorización y la primera carga se completan automáticamente, sin copiar códigos temporales.</p>
             <div class="meli-kpis" id="meliKpis" hidden>
               <div><span>Departamentos en venta</span><b id="meliListings">—</b><small>Santa Fe Capital</small></div>
               <div><span>Con superficie</span><b id="meliAreaSample">—</b><small>muestra para USD/m²</small></div>
@@ -236,7 +246,7 @@
               <div><span>Mediana por m²</span><b id="meliMedianM2">—</b><small>departamentos · USD/m²</small></div>
             </div>
             <div class="meli-privacy"><b>Privacidad por diseño</b><span>Nodo guarda únicamente agregados. No publica vendedores, IDs, direcciones, coordenadas ni descripciones de avisos.</span></div>
-            <div class="meli-footer"><span id="meliUpdated">Primera ejecución en curso</span><a href="https://developers.mercadolibre.com.ar/" target="_blank" rel="noopener">API oficial de Mercado Libre ↗</a></div>
+            <div class="meli-footer"><span id="meliUpdated">Esperando autorización mediante PKCE</span><div><a href="https://nodo-santa-fe-meli.ginogervasoni.chatgpt.site" target="_blank" rel="noopener">Conectar Mercado Libre ↗</a><a href="https://developers.mercadolibre.com.ar/" target="_blank" rel="noopener">API oficial ↗</a></div></div>
           </section>
         </section>
 
@@ -355,8 +365,8 @@
             <article><span class="method-num">10%</span><h3>Valorización</h3><p>Evolución relativa de precios, demanda e inversiones cercanas.</p></article>
             <article class="risk-card"><span class="method-num">−R</span><h3>Riesgo</h3><p>Exposición hídrica, oferta excesiva, baja muestra y datos antiguos.</p></article>
           </div>
-          <div class="sources-section"><div><span class="zone-kicker">Fuentes incorporadas y previstas</span><h2>Trazabilidad desde el origen</h2></div><div class="source-tags"><span class="source-live">INDEC · incorporada</span><span class="source-live">SCIT · incorporada</span><span class="source-live">IPEC · incorporada</span><span class="source-live">TuLugar · incorporada</span><span class="source-live">BCRA · incorporada</span><span>Mercado Libre · procesando</span><span>Colegio de Escribanos</span></div></div>
-          <div class="method-notice step-complete"><b>Paso 8 · Mercado Libre API</b><p>La cuenta ya fue autorizada mediante OAuth. El conector utiliza exclusivamente la API oficial y publicará estadísticas agregadas de departamentos en venta en Santa Fe Capital después de validar la primera muestra.</p></div>
+          <div class="sources-section"><div><span class="zone-kicker">Fuentes incorporadas y previstas</span><h2>Trazabilidad desde el origen</h2></div><div class="source-tags"><span class="source-live">INDEC · incorporada</span><span class="source-live">SCIT · incorporada</span><span class="source-live">IPEC · incorporada</span><span class="source-live">TuLugar · incorporada</span><span class="source-live">BCRA · incorporada</span><span>Mercado Libre · OAuth preparado</span><span>Colegio de Escribanos</span></div></div>
+          <div class="method-notice step-complete"><b>Paso 8 · Mercado Libre API</b><p>El conector utiliza OAuth con PKCE y exclusivamente la API oficial. Recibe la autorización, cifra los tokens y publica solo estadísticas agregadas de departamentos en venta en Santa Fe Capital, sin solicitar códigos manuales.</p></div>
         </section>
       </main>
     </div>
@@ -370,6 +380,6 @@
     </dialog>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script src="app.js"></script>
+    <script src="/app.js"></script>
   </body>
 </html>
