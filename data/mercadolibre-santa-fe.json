@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "status": "pending_authorization",
+  "generated_at": null,
+  "source": {
+    "publisher": "Mercado Libre",
+    "product": "Mercado Libre Inmuebles",
+    "classification": "authorized-market-api-derived",
+    "api": "https://api.mercadolibre.com",
+    "documentation": "https://developers.mercadolibre.com.ar/",
+    "site_id": "MLA",
+    "city_id": null,
+    "category_id": "MLA1459"
+  },
+  "scope": "Departamentos publicados en venta en Santa Fe Capital",
+  "city": null,
+  "zones": {},
+  "privacy": "Solo se publicarán agregados. No se almacenarán IDs, vendedores, direcciones, coordenadas ni descripciones de avisos.",
+  "limitations": "El conector requiere autorización OAuth de Mercado Libre. No se muestran estimaciones ni datos simulados mientras esté pendiente.",
+  "activation": {
+    "status": "required",
+    "secret": "MELI_ACCESS_TOKEN",
+    "instruction": "Crear y autorizar una aplicación en Mercado Libre Developers; guardar el token únicamente como secreto de GitHub Actions."
+  }
+}

@@ -105,9 +105,9 @@
       "city_market_url": "https://tulugar.com/es/mercado/argentina/santa-fe",
       "methodology_url": "https://tulugar.com/es/mercado/paraguay/metodologia",
       "geographic_level": "ciudad y barrios con coincidencia nominal exacta",
-      "latest_snapshot": "2026-09-13",
+      "latest_snapshot": "2026-09-12",
       "latest_monthly_period": "2026-08",
-      "accessed_at": "2026-09-13",
+      "accessed_at": "2026-09-12",
       "license_and_use": "Reutilización periodística, académica y comercial autorizada con atribución a TuLugar. La aplicación publica métricas agregadas y no redistribuye los archivos completos como catálogo propio.",
       "variables": [
         "cantidad de avisos activos de venta y alquiler",
@@ -117,6 +117,29 @@
       ],
       "purpose": "Indicadores reales de oferta inmobiliaria para la ciudad y para cuatro zonas con correspondencia territorial verificable",
       "limitations": "Son precios publicados, no precios de cierre. La serie argentina comienza en 2026. Solo se asocian barrios con coincidencia nominal exacta o una variante ortográfica documentada; no se imputan datos a las demás zonas ni se recalibra todavía el puntaje de inversión."
+    },
+    {
+      "id": "mercadolibre_inmuebles_santa_fe",
+      "title": "Publicaciones de departamentos en Santa Fe Capital",
+      "publisher": "Mercado Libre",
+      "product": "Mercado Libre Inmuebles",
+      "classification": "authorized-market-api-derived",
+      "api_url": "https://api.mercadolibre.com",
+      "documentation_url": "https://developers.mercadolibre.com.ar/",
+      "site_id": "MLA",
+      "category_id": "MLA1459",
+      "geographic_level": "Santa Fe Capital y barrios con coincidencia nominal verificada",
+      "authorization": "OAuth required before collection",
+      "accessed_at": "2026-09-13",
+      "variables": [
+        "cantidad de departamentos publicados en venta",
+        "mediana del precio publicado en USD",
+        "mediana del precio publicado en USD/m²",
+        "tamaño de muestra con superficie informada"
+      ],
+      "purpose": "Ampliar la cobertura de oferta y contrastar indicadores agregados con una segunda fuente de mercado",
+      "privacy": "No se redistribuyen avisos individuales ni se guardan vendedores, IDs, direcciones, coordenadas o descripciones.",
+      "limitations": "Requiere autorización OAuth. Son precios de oferta y una publicación retirada no demuestra una venta. Se conserva separado de TuLugar y no altera todavía el puntaje de inversión."
     }
   ]
 }

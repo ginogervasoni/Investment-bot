@@ -17,7 +17,10 @@ def read(name: str) -> dict:
 
 
 def connector_status(name: str) -> str:
-    return "active" if os.environ.get(f"PIPELINE_{name.upper()}_STATUS", "success") == "success" else "error"
+    value = os.environ.get(f"PIPELINE_{name.upper()}_STATUS", "pending" if name == "meli" else "success")
+    if value == "pending":
+        return "pending"
+    return "active" if value == "success" else "error"
 
 
 def detail(status: str, healthy_text: str) -> str:
@@ -28,15 +31,26 @@ def main() -> None:
     market = read("market-santa-fe.json")
     construction = read("construction-series.json")
     affordability = read("affordability-santa-fe.json")
+    meli = read("mercadolibre-santa-fe.json")
     now = datetime.now(timezone.utc).replace(microsecond=0)
-    statuses = {name: connector_status(name) for name in ("market", "ipec", "indec_bcra")}
+    statuses = {name: connector_status(name) for name in ("market", "meli", "ipec", "indec_bcra")}
+    has_error = any(value == "error" for value in statuses.values())
+    has_pending = any(value == "pending" for value in statuses.values())
     payload = {
         "schema_version": "1.0",
         "checked_at": now.isoformat().replace("+00:00", "Z"),
         "schedule": {"frequency": "monthly", "day": 1, "time": "08:17", "timezone": "America/Argentina/Cordoba"},
-        "status": "healthy" if all(value == "active" for value in statuses.values()) else "degraded",
+        "status": "degraded" if has_error else "setup_required" if has_pending else "healthy",
         "connectors": {
             "tulugar": {"label": "Mercado", "publisher": "TuLugar", "status": statuses["market"], "latest_period": market["city"]["snapshot_date"], "cadence": "mensual", "detail": detail(statuses["market"], f"{len(market['zones'])} zonas verificadas")},
+            "mercadolibre": {
+                "label": "Oferta ampliada",
+                "publisher": "Mercado Libre Inmuebles",
+                "status": statuses["meli"],
+                "latest_period": (meli.get("city") or {}).get("snapshot_date"),
+                "cadence": "mensual",
+                "detail": "autorización OAuth pendiente" if statuses["meli"] == "pending" else detail(statuses["meli"], f"{(meli.get('city') or {}).get('listings', 0)} departamentos agregados"),
+            },
             "ipec": {"label": "Construcción", "publisher": "IPEC", "status": statuses["ipec"], "latest_period": construction["latest_period"], "cadence": "mensual", "detail": detail(statuses["ipec"], "costos y permisos")},
             "indec": {"label": "Ingresos", "publisher": "INDEC · EPH", "status": statuses["indec_bcra"], "latest_period": affordability["income"]["latest_period"], "cadence": "trimestral", "detail": detail(statuses["indec_bcra"], "Gran Santa Fe")},
             "bcra": {"label": "Crédito y dólar", "publisher": "BCRA", "status": statuses["indec_bcra"], "latest_period": affordability["exchange_rate"]["date"], "cadence": "diaria/mensual", "detail": detail(statuses["indec_bcra"], f"hipotecarios {affordability['credit']['latest_period']}")},

@@ -1,21 +1,29 @@
 {
   "schema_version": "1.0",
-  "checked_at": "2026-09-13T15:05:31Z",
+  "checked_at": "2026-09-13T15:34:23Z",
   "schedule": {
     "frequency": "monthly",
     "day": 1,
     "time": "08:17",
     "timezone": "America/Argentina/Cordoba"
   },
-  "status": "healthy",
+  "status": "setup_required",
   "connectors": {
     "tulugar": {
       "label": "Mercado",
       "publisher": "TuLugar",
       "status": "active",
-      "latest_period": "2026-09-13",
+      "latest_period": "2026-09-12",
       "cadence": "mensual",
       "detail": "4 zonas verificadas"
+    },
+    "mercadolibre": {
+      "label": "Oferta ampliada",
+      "publisher": "Mercado Libre Inmuebles",
+      "status": "pending",
+      "latest_period": null,
+      "cadence": "mensual",
+      "detail": "autorización OAuth pendiente"
     },
     "ipec": {
       "label": "Construcción",

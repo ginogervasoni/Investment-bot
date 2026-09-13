@@ -13,7 +13,7 @@ const zones = [
 
 const profiles={balanced:{demand:.30,development:.25,infrastructure:.20,yield:.15,growth:.10,risk:.18},rent:{demand:.32,development:.08,infrastructure:.20,yield:.30,growth:.10,risk:.20},growth:{demand:.24,development:.25,infrastructure:.16,yield:.08,growth:.27,risk:.18},development:{demand:.18,development:.38,infrastructure:.18,yield:.06,growth:.20,risk:.20},conservative:{demand:.27,development:.12,infrastructure:.28,yield:.16,growth:.07,risk:.32}};
 const state={metric:'score',strategy:'balanced',minScore:45,selected:'candioti-norte',compare:[]};
-let map,markers=new Map(),officialBoundaries,censusLayer,censusData,constructionData,marketData,affordabilityData,pipelineData;
+let map,markers=new Map(),officialBoundaries,censusLayer,censusData,constructionData,marketData,meliData,affordabilityData,pipelineData;
 
 const $=s=>document.querySelector(s); const $$=s=>[...document.querySelectorAll(s)];
 const fmt=n=>new Intl.NumberFormat('es-AR').format(n);
@@ -25,10 +25,42 @@ const MARKET_REMOTE_URL='https://raw.githubusercontent.com/ginogervasoni/Investm
 const CONSTRUCTION_REMOTE_URL='https://raw.githubusercontent.com/ginogervasoni/Investment-bot/main/data/construction-series.json';
 const AFFORDABILITY_REMOTE_URL='https://raw.githubusercontent.com/ginogervasoni/Investment-bot/main/data/affordability-santa-fe.json';
 const PIPELINE_REMOTE_URL='https://raw.githubusercontent.com/ginogervasoni/Investment-bot/main/data/pipeline-status.json';
+const MELI_REMOTE_URL='https://raw.githubusercontent.com/ginogervasoni/Investment-bot/main/data/mercadolibre-santa-fe.json';
 
 function validMarketPayload(data){
   const city=data?.city,zones=data?.zones;
   return data?.attribution==='Fuente: TuLugar (tulugar.com)'&&city&&zones&&Number.isFinite(city.listings_total)&&city.listings_total===city.listings_sale+city.listings_rent&&Object.keys(zones).length>0;
+}
+
+function validMeliPayload(data){
+  if(data?.schema_version!=='1.0'||data?.source?.publisher!=='Mercado Libre')return false;
+  if(data.status==='pending_authorization')return data.city===null&&data.zones&&Object.keys(data.zones).length===0;
+  return data.status==='active'&&data.city&&Number.isFinite(data.city.listings)&&data.city.listings>0&&Number.isFinite(data.city.sample_with_area);
+}
+
+async function loadMeliData(){
+  try{
+    let response;
+    try{response=await fetch(`${MELI_REMOTE_URL}?v=${Date.now()}`,{cache:'no-store'});if(!response.ok)throw new Error(`HTTP ${response.status}`);meliData=await response.json();if(!validMeliPayload(meliData))throw new Error('Datos remotos inválidos')}
+    catch(remoteError){response=await fetch('data/mercadolibre-santa-fe.json');if(!response.ok)throw new Error(`HTTP ${response.status}`);meliData=await response.json();if(!validMeliPayload(meliData))throw new Error('Datos locales inválidos')}
+    renderMeliMarket();
+  }catch(error){console.error('No se pudo cargar Mercado Libre',error);$('#meliState').className='meli-state error';$('#meliState').innerHTML='<i></i>Conector no disponible';$('#meliIntro').textContent='No fue posible verificar el estado del conector.'}
+}
+
+function renderMeliMarket(){
+  const state=$('#meliState'),intro=$('#meliIntro'),kpis=$('#meliKpis');
+  if(meliData.status!=='active'){
+    state.className='meli-state pending';state.innerHTML='<i></i>Pendiente de autorización';kpis.hidden=true;
+    intro.textContent='El conector oficial está preparado. Comenzará a publicar estadísticas agregadas cuando se autorice la aplicación mediante OAuth.';
+    $('#meliUpdated').textContent='Sin datos hasta completar la autorización';return;
+  }
+  const city=meliData.city;
+  state.className='meli-state active';state.innerHTML='<i></i>API activa';kpis.hidden=false;
+  intro.textContent='Cobertura complementaria de departamentos publicados en venta. Se procesa por separado para no mezclar metodologías ni contar avisos como operaciones cerradas.';
+  $('#meliListings').textContent=fmt(city.listings);$('#meliAreaSample').textContent=fmt(city.sample_with_area);
+  $('#meliMedianSale').textContent=city.median_sale_usd?`US$ ${fmt(Math.round(city.median_sale_usd))}`:'Sin muestra';
+  $('#meliMedianM2').textContent=city.median_apartment_price_usd_m2?`US$ ${fmt(Math.round(city.median_apartment_price_usd_m2))}`:'Sin muestra';
+  $('#meliUpdated').textContent=`API MLA · ${city.snapshot_date.split('-').reverse().join('/')} · ${Object.keys(meliData.zones).length} zonas verificadas`;
 }
 
 async function loadConstructionData(){
@@ -107,6 +139,7 @@ function renderAffordability(){
 }
 
 function pipelinePeriod(value){
+  if(!value)return 'Sin datos';
   if(value.includes('-Q'))return quarterLabel(value);
   if(value.length===10)return value.split('-').reverse().join('/');
   return periodLabel(value);
@@ -123,9 +156,9 @@ async function loadPipelineStatus(){
 }
 
 function renderPipelineStatus(){
-  const healthy=pipelineData.status==='healthy',checked=new Date(pipelineData.checked_at);
-  $('#officialPipelineTitle').textContent=healthy?'Todos los conectores respondieron':'Actualización parcial · datos protegidos';$('#officialPipelineChecked').textContent=`Último control: ${new Intl.DateTimeFormat('es-AR',{dateStyle:'medium',timeStyle:'short',timeZone:'America/Argentina/Cordoba'}).format(checked)} · próximo: día 1`;$('#officialPipelineDot').classList.toggle('error',!healthy);
-  $('#officialConnectorGrid').innerHTML=Object.values(pipelineData.connectors).map(connector=>`<article class="connector-card ${connector.status}"><div><span class="connector-state"><i></i>${connector.status==='active'?'Activo':'Revisar'}</span><small>${connector.cadence}</small></div><b>${connector.label}</b><span>${connector.publisher}</span><strong>${pipelinePeriod(connector.latest_period)}</strong><p>${connector.detail}</p></article>`).join('');
+  const healthy=pipelineData.status==='healthy',setup=pipelineData.status==='setup_required',checked=new Date(pipelineData.checked_at);
+  $('#officialPipelineTitle').textContent=healthy?'Todos los conectores respondieron':setup?'Mercado Libre requiere autorización':'Actualización parcial · datos protegidos';$('#officialPipelineChecked').textContent=`Último control: ${new Intl.DateTimeFormat('es-AR',{dateStyle:'medium',timeStyle:'short',timeZone:'America/Argentina/Cordoba'}).format(checked)} · próximo: día 1`;$('#officialPipelineDot').classList.toggle('error',!healthy&&!setup);$('#officialPipelineDot').classList.toggle('pending',setup);
+  $('#officialConnectorGrid').innerHTML=Object.values(pipelineData.connectors).map(connector=>`<article class="connector-card ${connector.status}"><div><span class="connector-state"><i></i>${connector.status==='active'?'Activo':connector.status==='pending'?'Pendiente':'Revisar'}</span><small>${connector.cadence}</small></div><b>${connector.label}</b><span>${connector.publisher}</span><strong>${pipelinePeriod(connector.latest_period)}</strong><p>${connector.detail}</p></article>`).join('');
   const market=pipelineData.connectors.tulugar;if(market){$('#pipelineStatus').textContent=market.status==='active'?'Automatización activa':'Último dato válido conservado';}
 }
 
@@ -229,7 +262,7 @@ function renderComparison(){const selected=state.compare.map(id=>zones.find(z=>z
 function switchView(view){$$('.view').forEach(v=>v.classList.toggle('active',v.id===`view-${view}`));$$('.nav-link').forEach(b=>b.classList.toggle('active',b.dataset.view===view));if(view==='mapa')setTimeout(()=>map.invalidateSize(),50);if(view==='zonas'){renderRanking($('#rankingStrategy').value);renderCompareSelection()}}
 
 document.addEventListener('DOMContentLoaded',()=>{
-  initMap();loadConstructionData();loadMarketData();loadAffordabilityData();loadPipelineStatus();selectZone(state.selected);
+  initMap();loadConstructionData();loadMarketData();loadMeliData();loadAffordabilityData();loadPipelineStatus();selectZone(state.selected);
   $('#strategy').addEventListener('change',e=>{state.strategy=e.target.value;renderMarkers();selectZone(state.selected)});
   $('#minScore').addEventListener('input',e=>{state.minScore=+e.target.value;$('#scoreOutput').textContent=e.target.value;renderMarkers()});
   $$('.layer-button').forEach(b=>b.addEventListener('click',()=>{$$('.layer-button').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.metric=b.dataset.metric;applyMapMode()}));

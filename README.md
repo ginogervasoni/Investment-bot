@@ -11,6 +11,7 @@ MVP de inteligencia territorial para explorar oportunidades inmobiliarias en San
 - Actualización automática mensual del mercado con validaciones y respaldo local.
 - Panel de accesibilidad con ingresos EPH de Gran Santa Fe, crédito UVA del BCRA y simulador de esfuerzo de compra.
 - Estado central de conectores con actualización automática y conservación del último dato válido ante fallas.
+- Conector preparado para estadísticas agregadas de Mercado Libre Inmuebles mediante su API oficial.
 - Capas coropléticas de población y porcentaje de hogares inquilinos.
 - Cinco capas: potencial, rentabilidad, valorización, desarrollo y riesgo.
 - Perfiles de inversión con ponderaciones diferentes.
@@ -36,6 +37,8 @@ El Paso 6 incorpora la mediana ponderada del ingreso total familiar de Gran Sant
 
 El Paso 7 unifica las actualizaciones de TuLugar, IPEC, INDEC y BCRA en una ejecución mensual. Cada conector se procesa y valida por separado. Si una descarga o validación falla, el flujo restaura el último archivo válido, publica un estado degradado en `pipeline-status.json` y finaliza con alerta. El sitio consulta ese estado directamente desde GitHub, de modo que puede mostrar el último control sin necesitar una nueva publicación del frontend.
 
+El Paso 8 incorpora un conector separado para Mercado Libre Inmuebles. Consulta la API oficial para departamentos publicados en venta en Santa Fe Capital, normaliza moneda y superficie y genera exclusivamente agregados de ciudad y zonas con coincidencia nominal verificada. No guarda registros individuales ni modifica el puntaje. Hasta completar la autorización OAuth, el sitio muestra el estado `pending_authorization` y no reemplaza la falta de datos con estimaciones.
+
 ## Ejecución local
 
 No requiere instalación. Servir la carpeta mediante cualquier servidor HTTP estático, por ejemplo:
@@ -48,7 +51,7 @@ Luego abrir `http://localhost:8080`.
 
 ## Próxima etapa
 
-1. Ampliar la cobertura territorial con equivalencias verificadas entre barrios y vecinales.
-2. Obtener permisos georreferenciados para construir indicadores por vecinal.
-3. Acumular historia suficiente y recalibrar el puntaje con indicadores reales y pruebas retrospectivas.
-4. Conectar una notificación externa para alertas de calidad.
+1. Autorizar la aplicación de Mercado Libre y guardar `MELI_ACCESS_TOKEN` como secreto de GitHub Actions.
+2. Ampliar la cobertura territorial con equivalencias verificadas entre barrios y vecinales.
+3. Obtener permisos georreferenciados para construir indicadores por vecinal.
+4. Acumular historia suficiente y recalibrar el puntaje con indicadores reales y pruebas retrospectivas.

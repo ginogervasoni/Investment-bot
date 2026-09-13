@@ -6,9 +6,11 @@ on:
     paths:
       - ".github/workflows/update-market-data.yml"
       - "scripts/extract_tulugar_market.py"
+      - "scripts/extract_mercadolibre_market.py"
       - "scripts/extract_ipec_construction.py"
       - "scripts/extract_affordability.py"
       - "scripts/validate_market_data.py"
+      - "scripts/validate_mercadolibre_market.py"
       - "scripts/validate_official_data.py"
       - "scripts/build_pipeline_status.py"
   schedule:
@@ -41,6 +43,7 @@ jobs:
       - name: Preserve previous datasets
         run: |
           cp data/market-santa-fe.json /tmp/market-santa-fe-previous.json
+          cp data/mercadolibre-santa-fe.json /tmp/mercadolibre-santa-fe-previous.json
           cp data/construction-series.json /tmp/construction-series-previous.json
           cp data/affordability-santa-fe.json /tmp/affordability-santa-fe-previous.json
 
@@ -48,6 +51,25 @@ jobs:
         id: market
         continue-on-error: true
         run: python scripts/extract_tulugar_market.py
+
+      - name: Check Mercado Libre authorization
+        id: meli_auth
+        env:
+          MELI_ACCESS_TOKEN: ${{ secrets.MELI_ACCESS_TOKEN }}
+        run: |
+          if [ -n "$MELI_ACCESS_TOKEN" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Update Mercado Libre aggregates
+        id: meli
+        if: steps.meli_auth.outputs.configured == 'true'
+        continue-on-error: true
+        env:
+          MELI_ACCESS_TOKEN: ${{ secrets.MELI_ACCESS_TOKEN }}
+        run: python scripts/extract_mercadolibre_market.py
 
       - name: Update official IPEC construction data
         id: ipec
@@ -64,6 +86,12 @@ jobs:
         if: steps.market.outcome == 'success'
         continue-on-error: true
         run: python scripts/validate_market_data.py --previous /tmp/market-santa-fe-previous.json
+
+      - name: Validate Mercado Libre aggregates and privacy
+        id: validate_meli
+        if: steps.meli_auth.outputs.configured == 'true' && steps.meli.outcome == 'success'
+        continue-on-error: true
+        run: python scripts/validate_mercadolibre_market.py --previous /tmp/mercadolibre-santa-fe-previous.json
 
       - name: Validate IPEC periods and values
         id: validate_ipec
@@ -83,10 +111,27 @@ jobs:
           MARKET_OK: ${{ steps.market.outcome == 'success' && steps.validate_market.outcome == 'success' }}
           IPEC_OK: ${{ steps.ipec.outcome == 'success' && steps.validate_ipec.outcome == 'success' }}
           INDEC_BCRA_OK: ${{ steps.indec_bcra.outcome == 'success' && steps.validate_indec_bcra.outcome == 'success' }}
+          MELI_CONFIGURED: ${{ steps.meli_auth.outputs.configured }}
+          MELI_OK: ${{ steps.meli.outcome == 'success' && steps.validate_meli.outcome == 'success' }}
         run: |
           if [ "$MARKET_OK" != "true" ]; then cp /tmp/market-santa-fe-previous.json data/market-santa-fe.json; fi
           if [ "$IPEC_OK" != "true" ]; then cp /tmp/construction-series-previous.json data/construction-series.json; fi
           if [ "$INDEC_BCRA_OK" != "true" ]; then cp /tmp/affordability-santa-fe-previous.json data/affordability-santa-fe.json; fi
+          if [ "$MELI_CONFIGURED" = "true" ] && [ "$MELI_OK" != "true" ]; then cp /tmp/mercadolibre-santa-fe-previous.json data/mercadolibre-santa-fe.json; fi
+
+      - name: Resolve Mercado Libre connector state
+        if: always()
+        env:
+          MELI_CONFIGURED: ${{ steps.meli_auth.outputs.configured }}
+          MELI_OK: ${{ steps.meli.outcome == 'success' && steps.validate_meli.outcome == 'success' }}
+        run: |
+          if [ "$MELI_CONFIGURED" != "true" ]; then
+            echo "PIPELINE_MELI_STATUS=pending" >> "$GITHUB_ENV"
+          elif [ "$MELI_OK" = "true" ]; then
+            echo "PIPELINE_MELI_STATUS=success" >> "$GITHUB_ENV"
+          else
+            echo "PIPELINE_MELI_STATUS=error" >> "$GITHUB_ENV"
+          fi
 
       - name: Publish connector status
         if: always()
@@ -100,7 +145,7 @@ jobs:
         id: changes
         if: always()
         run: |
-          if git diff --quiet -- data/market-santa-fe.json data/construction-series.json data/affordability-santa-fe.json data/pipeline-status.json data/source-catalog.json; then
+          if git diff --quiet -- data/market-santa-fe.json data/mercadolibre-santa-fe.json data/construction-series.json data/affordability-santa-fe.json data/pipeline-status.json data/source-catalog.json; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -111,10 +156,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/market-santa-fe.json data/construction-series.json data/affordability-santa-fe.json data/pipeline-status.json data/source-catalog.json
+          git add data/market-santa-fe.json data/mercadolibre-santa-fe.json data/construction-series.json data/affordability-santa-fe.json data/pipeline-status.json data/source-catalog.json
           git commit -m "Update Santa Fe real estate data"
           git push
 
       - name: Report degraded connector state
-        if: always() && (steps.market.outcome != 'success' || steps.validate_market.outcome != 'success' || steps.ipec.outcome != 'success' || steps.validate_ipec.outcome != 'success' || steps.indec_bcra.outcome != 'success' || steps.validate_indec_bcra.outcome != 'success')
+        if: always() && (steps.market.outcome != 'success' || steps.validate_market.outcome != 'success' || steps.ipec.outcome != 'success' || steps.validate_ipec.outcome != 'success' || steps.indec_bcra.outcome != 'success' || steps.validate_indec_bcra.outcome != 'success' || (steps.meli_auth.outputs.configured == 'true' && (steps.meli.outcome != 'success' || steps.validate_meli.outcome != 'success')))
         run: exit 1

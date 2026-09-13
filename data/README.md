@@ -99,3 +99,19 @@ El flujo `.github/workflows/update-market-data.yml` actualiza mensualmente los c
 8. el flujo termina con alerta cuando alguna fuente queda degradada, incluso después de proteger los datos vigentes.
 
 El frontend intenta leer el estado publicado en GitHub y utiliza la copia incluida en la versión del sitio como respaldo. La actualización mensual se ejecuta el día 1 a las 08:17 de Argentina y también puede iniciarse manualmente desde GitHub Actions.
+
+## Paso 8 — Mercado Libre Inmuebles
+
+`scripts/extract_mercadolibre_market.py` consulta exclusivamente `https://api.mercadolibre.com`. El alcance inicial son departamentos publicados en venta en Santa Fe Capital. El proceso:
+
+1. resuelve la ciudad mediante `classified_locations`;
+2. pagina la búsqueda del sitio argentino `MLA` hasta el límite admitido;
+3. consulta el detalle de los avisos por lotes;
+4. conserva solamente departamentos en venta ubicados en la ciudad;
+5. normaliza ARS a USD con la referencia BCRA ya incorporada;
+6. calcula medianas y muestras para ciudad y barrios con alias verificados;
+7. publica solo estadísticas agregadas en `mercadolibre-santa-fe.json`.
+
+No se escriben IDs de avisos, vendedores, direcciones, coordenadas, títulos, descripciones ni enlaces individuales. `scripts/validate_mercadolibre_market.py` comprueba el esquema, los rangos de precios, la muestra, el límite de resultados y la ausencia de campos individuales.
+
+La activación requiere crear y autorizar una aplicación en [Mercado Libre Developers](https://developers.mercadolibre.com.ar/) y guardar el token como secreto `MELI_ACCESS_TOKEN` del repositorio. Mientras el secreto no exista, el flujo mensual conserva el archivo con `pending_authorization`, no falla los demás conectores y el sitio informa que no hay datos de Mercado Libre. Los tokens nunca deben añadirse al repositorio ni enviarse por chat.
