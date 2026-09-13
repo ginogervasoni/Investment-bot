@@ -16,6 +16,18 @@ const state={metric:'score',strategy:'balanced',minScore:45,selected:'candioti-n
 let map,markers=new Map(),officialBoundaries,censusLayer,censusData,constructionData,marketData,meliData,affordabilityData,pipelineData;
 
 const $=s=>document.querySelector(s); const $$=s=>[...document.querySelectorAll(s)];
+const oauthCallback=location.pathname==='/oauth/mercadolibre/callback';
+if(oauthCallback){
+  const code=new URLSearchParams(location.search).get('code');
+  $('.app-shell').hidden=true;
+  $('#oauthCallback').hidden=false;
+  if(code){
+    $('#oauthCodeWrap').hidden=false;
+    $('#oauthCode').value=code;
+    $('#oauthMessage').textContent='Mercado Libre autorizó la aplicación. Guardá este código temporal de forma segura para completar la conexión.';
+    $('#copyOauthCode').addEventListener('click',async()=>{await navigator.clipboard.writeText(code);$('#copyOauthCode').textContent='Copiado';});
+  }else $('#oauthMessage').textContent='No encontramos un código de autorización en esta dirección. Volvé a iniciar la autorización desde Mercado Libre.';
+}
 const fmt=n=>new Intl.NumberFormat('es-AR').format(n);
 const money=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(n);
 const pct=n=>`${n>=0?'+':''}${n.toFixed(1).replace('.',',')}%`;
@@ -25,7 +37,8 @@ const MARKET_REMOTE_URL='https://raw.githubusercontent.com/ginogervasoni/Investm
 const CONSTRUCTION_REMOTE_URL='https://raw.githubusercontent.com/ginogervasoni/Investment-bot/main/data/construction-series.json';
 const AFFORDABILITY_REMOTE_URL='https://raw.githubusercontent.com/ginogervasoni/Investment-bot/main/data/affordability-santa-fe.json';
 const PIPELINE_REMOTE_URL='https://raw.githubusercontent.com/ginogervasoni/Investment-bot/main/data/pipeline-status.json';
-const MELI_REMOTE_URL='https://raw.githubusercontent.com/ginogervasoni/Investment-bot/main/data/mercadolibre-santa-fe.json';
+const MELI_REMOTE_URL='https://nodo-santa-fe-meli.ginogervasoni.chatgpt.site/api/market';
+const MELI_GITHUB_FALLBACK='https://raw.githubusercontent.com/ginogervasoni/Investment-bot/main/data/mercadolibre-santa-fe.json';
 
 function validMarketPayload(data){
   const city=data?.city,zones=data?.zones;
@@ -41,8 +54,8 @@ function validMeliPayload(data){
 async function loadMeliData(){
   try{
     let response;
-    try{response=await fetch(`${MELI_REMOTE_URL}?v=${Date.now()}`,{cache:'no-store'});if(!response.ok)throw new Error(`HTTP ${response.status}`);meliData=await response.json();if(!validMeliPayload(meliData))throw new Error('Datos remotos inválidos')}
-    catch(remoteError){response=await fetch('data/mercadolibre-santa-fe.json');if(!response.ok)throw new Error(`HTTP ${response.status}`);meliData=await response.json();if(!validMeliPayload(meliData))throw new Error('Datos locales inválidos')}
+    try{response=await fetch(`${MELI_REMOTE_URL}?v=${Date.now()}`,{cache:'no-store'});if(!response.ok)throw new Error(`HTTP ${response.status}`);meliData=await response.json();if(!validMeliPayload(meliData))throw new Error('Datos del conector inválidos')}
+    catch(connectorError){try{response=await fetch(`${MELI_GITHUB_FALLBACK}?v=${Date.now()}`,{cache:'no-store'});if(!response.ok)throw new Error(`HTTP ${response.status}`);meliData=await response.json();if(!validMeliPayload(meliData))throw new Error('Datos remotos inválidos')}catch(remoteError){response=await fetch('data/mercadolibre-santa-fe.json');if(!response.ok)throw new Error(`HTTP ${response.status}`);meliData=await response.json();if(!validMeliPayload(meliData))throw new Error('Datos locales inválidos')}}
     renderMeliMarket();
   }catch(error){console.error('No se pudo cargar Mercado Libre',error);$('#meliState').className='meli-state error';$('#meliState').innerHTML='<i></i>Conector no disponible';$('#meliIntro').textContent='No fue posible verificar el estado del conector.'}
 }
@@ -50,9 +63,9 @@ async function loadMeliData(){
 function renderMeliMarket(){
   const state=$('#meliState'),intro=$('#meliIntro'),kpis=$('#meliKpis');
   if(meliData.status!=='active'){
-    state.className='meli-state pending';state.innerHTML='<i></i>Procesando autorización';kpis.hidden=true;
-    intro.textContent='La cuenta ya fue autorizada. El conector está ejecutando y validando la primera muestra de Mercado Libre.';
-    $('#meliUpdated').textContent='Primera ejecución en curso';return;
+    state.className='meli-state pending';state.innerHTML='<i></i>OAuth pendiente';kpis.hidden=true;
+    intro.textContent='El retorno seguro ya está preparado. Al autorizar desde el enlace, la primera muestra se procesará automáticamente sin copiar códigos.';
+    $('#meliUpdated').textContent='Esperando autorización mediante PKCE';return;
   }
   const city=meliData.city;
   state.className='meli-state active';state.innerHTML='<i></i>API activa';kpis.hidden=false;
@@ -262,6 +275,7 @@ function renderComparison(){const selected=state.compare.map(id=>zones.find(z=>z
 function switchView(view){$$('.view').forEach(v=>v.classList.toggle('active',v.id===`view-${view}`));$$('.nav-link').forEach(b=>b.classList.toggle('active',b.dataset.view===view));if(view==='mapa')setTimeout(()=>map.invalidateSize(),50);if(view==='zonas'){renderRanking($('#rankingStrategy').value);renderCompareSelection()}}
 
 document.addEventListener('DOMContentLoaded',()=>{
+  if(oauthCallback)return;
   initMap();loadConstructionData();loadMarketData();loadMeliData();loadAffordabilityData();loadPipelineStatus();selectZone(state.selected);
   $('#strategy').addEventListener('change',e=>{state.strategy=e.target.value;renderMarkers();selectZone(state.selected)});
   $('#minScore').addEventListener('input',e=>{state.minScore=+e.target.value;$('#scoreOutput').textContent=e.target.value;renderMarkers()});
