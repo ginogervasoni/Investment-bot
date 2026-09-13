@@ -1,17 +1,17 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-09-12",
+  "generated_at": "2026-09-13",
   "classification": "authorized-market-data-derived",
   "attribution": "Fuente: TuLugar (tulugar.com)",
   "city": {
     "name": "Santa Fe",
-    "snapshot_date": "2026-09-12",
+    "snapshot_date": "2026-09-13",
     "listings_total": 6081,
     "listings_sale": 5307,
     "listings_rent": 774,
     "median_sale_usd": 90000.0,
     "median_apartment_price_usd_m2": 920.79,
-    "median_rent_usd_month": 462.66
+    "median_rent_usd_month": 463.6
   },
   "zones": {
     "candioti-norte": {

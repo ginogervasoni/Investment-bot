@@ -1,29 +1,29 @@
 {
   "schema_version": "1.0",
-  "checked_at": "2026-09-13T15:00:05Z",
+  "checked_at": "2026-09-13T15:05:31Z",
   "schedule": {
     "frequency": "monthly",
     "day": 1,
     "time": "08:17",
     "timezone": "America/Argentina/Cordoba"
   },
-  "status": "degraded",
+  "status": "healthy",
   "connectors": {
     "tulugar": {
       "label": "Mercado",
       "publisher": "TuLugar",
       "status": "active",
-      "latest_period": "2026-09-12",
+      "latest_period": "2026-09-13",
       "cadence": "mensual",
       "detail": "4 zonas verificadas"
     },
     "ipec": {
       "label": "Construcción",
       "publisher": "IPEC",
-      "status": "error",
+      "status": "active",
       "latest_period": "2026-07",
       "cadence": "mensual",
-      "detail": "fuente no disponible; se conserva el último dato válido"
+      "detail": "costos y permisos"
     },
     "indec": {
       "label": "Ingresos",
