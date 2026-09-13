@@ -52,14 +52,12 @@ jobs:
         continue-on-error: true
         run: python scripts/extract_tulugar_market.py
 
-      - name: Check Mercado Libre credentials
+      - name: Check Mercado Libre authorization
         id: meli_auth
         env:
           MELI_ACCESS_TOKEN: ${{ secrets.MELI_ACCESS_TOKEN }}
-          MELI_CLIENT_ID: ${{ secrets.MELI_CLIENT_ID }}
-          MELI_CLIENT_SECRET: ${{ secrets.MELI_CLIENT_SECRET }}
         run: |
-          if [ -n "$MELI_ACCESS_TOKEN" ] || { [ -n "$MELI_CLIENT_ID" ] && [ -n "$MELI_CLIENT_SECRET" ]; }; then
+          if [ -n "$MELI_ACCESS_TOKEN" ]; then
             echo "configured=true" >> "$GITHUB_OUTPUT"
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
@@ -71,8 +69,6 @@ jobs:
         continue-on-error: true
         env:
           MELI_ACCESS_TOKEN: ${{ secrets.MELI_ACCESS_TOKEN }}
-          MELI_CLIENT_ID: ${{ secrets.MELI_CLIENT_ID }}
-          MELI_CLIENT_SECRET: ${{ secrets.MELI_CLIENT_SECRET }}
         run: python scripts/extract_mercadolibre_market.py
 
       - name: Update official IPEC construction data

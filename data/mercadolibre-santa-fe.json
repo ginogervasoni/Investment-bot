@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "status": "pending_credentials_check",
+  "status": "pending_authorization",
   "generated_at": null,
   "source": {
     "publisher": "Mercado Libre",
@@ -16,13 +16,10 @@
   "city": null,
   "zones": {},
   "privacy": "Solo se publicarán agregados. No se almacenarán IDs, vendedores, direcciones, coordenadas ni descripciones de avisos.",
-  "limitations": "El conector requiere credenciales válidas de una aplicación de Mercado Libre con Client Credentials habilitado. No se muestran estimaciones ni datos simulados mientras esté pendiente.",
+  "limitations": "El conector requiere completar Authorization Code OAuth. La API rechazó el uso de Client Credentials; no se muestran estimaciones ni datos simulados mientras esté pendiente.",
   "activation": {
     "status": "required",
-    "secrets": [
-      "MELI_CLIENT_ID",
-      "MELI_CLIENT_SECRET"
-    ],
-    "instruction": "Verificar las credenciales de aplicación y ejecutar el conector; el access token se solicita en memoria y no se guarda."
+    "secret": "MELI_ACCESS_TOKEN",
+    "instruction": "Autorizar la aplicación mediante Authorization Code OAuth y guardar el access token únicamente como secreto de GitHub Actions."
   }
 }

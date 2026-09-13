@@ -50,9 +50,9 @@ async function loadMeliData(){
 function renderMeliMarket(){
   const state=$('#meliState'),intro=$('#meliIntro'),kpis=$('#meliKpis');
   if(meliData.status!=='active'){
-    state.className='meli-state pending';state.innerHTML='<i></i>Verificando credenciales';kpis.hidden=true;
-    intro.textContent='El conector oficial está preparado para solicitar un token de aplicación y publicar únicamente estadísticas agregadas.';
-    $('#meliUpdated').textContent='Sin datos hasta completar la primera ejecución';return;
+    state.className='meli-state pending';state.innerHTML='<i></i>Pendiente de OAuth';kpis.hidden=true;
+    intro.textContent='La aplicación ya está creada y sus credenciales están protegidas. Falta autorizar la cuenta mediante Authorization Code OAuth antes de consultar la API.';
+    $('#meliUpdated').textContent='Sin datos hasta completar OAuth';return;
   }
   const city=meliData.city;
   state.className='meli-state active';state.innerHTML='<i></i>API activa';kpis.hidden=false;
@@ -157,7 +157,7 @@ async function loadPipelineStatus(){
 
 function renderPipelineStatus(){
   const healthy=pipelineData.status==='healthy',setup=pipelineData.status==='setup_required',checked=new Date(pipelineData.checked_at);
-  $('#officialPipelineTitle').textContent=healthy?'Todos los conectores respondieron':setup?'Mercado Libre requiere verificar credenciales':'Actualización parcial · datos protegidos';$('#officialPipelineChecked').textContent=`Último control: ${new Intl.DateTimeFormat('es-AR',{dateStyle:'medium',timeStyle:'short',timeZone:'America/Argentina/Cordoba'}).format(checked)} · próximo: día 1`;$('#officialPipelineDot').classList.toggle('error',!healthy&&!setup);$('#officialPipelineDot').classList.toggle('pending',setup);
+  $('#officialPipelineTitle').textContent=healthy?'Todos los conectores respondieron':setup?'Mercado Libre requiere OAuth':'Actualización parcial · datos protegidos';$('#officialPipelineChecked').textContent=`Último control: ${new Intl.DateTimeFormat('es-AR',{dateStyle:'medium',timeStyle:'short',timeZone:'America/Argentina/Cordoba'}).format(checked)} · próximo: día 1`;$('#officialPipelineDot').classList.toggle('error',!healthy&&!setup);$('#officialPipelineDot').classList.toggle('pending',setup);
   $('#officialConnectorGrid').innerHTML=Object.values(pipelineData.connectors).map(connector=>`<article class="connector-card ${connector.status}"><div><span class="connector-state"><i></i>${connector.status==='active'?'Activo':connector.status==='pending'?'Pendiente':'Revisar'}</span><small>${connector.cadence}</small></div><b>${connector.label}</b><span>${connector.publisher}</span><strong>${pipelinePeriod(connector.latest_period)}</strong><p>${connector.detail}</p></article>`).join('');
   const market=pipelineData.connectors.tulugar;if(market){$('#pipelineStatus').textContent=market.status==='active'?'Automatización activa':'Último dato válido conservado';}
 }
