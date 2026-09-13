@@ -11,11 +11,26 @@
     "sample_households": 608,
     "weighted_households": 349646,
     "series": [
-      {"period": "2025-Q1", "median_household_income_ars_month": 1110000},
-      {"period": "2025-Q2", "median_household_income_ars_month": 1200000},
-      {"period": "2025-Q3", "median_household_income_ars_month": 1410000},
-      {"period": "2025-Q4", "median_household_income_ars_month": 1250000},
-      {"period": "2026-Q1", "median_household_income_ars_month": 1400000}
+      {
+        "period": "2025-Q1",
+        "median_household_income_ars_month": 1110000
+      },
+      {
+        "period": "2025-Q2",
+        "median_household_income_ars_month": 1200000
+      },
+      {
+        "period": "2025-Q3",
+        "median_household_income_ars_month": 1410000
+      },
+      {
+        "period": "2025-Q4",
+        "median_household_income_ars_month": 1250000
+      },
+      {
+        "period": "2026-Q1",
+        "median_household_income_ars_month": 1400000
+      }
     ],
     "source": "INDEC · Encuesta Permanente de Hogares",
     "source_url": "https://www.indec.gob.ar/indec/web/Institucional-Indec-BasesDeDatos",
@@ -29,15 +44,15 @@
     "mortgage_uva_average_term_days": 8499,
     "mortgage_uva_average_term_years": 23.3,
     "mortgage_uva_amount_granted_ars": 362624769000,
-    "uva_ars": 2114.62,
-    "uva_date": "2026-09-11",
+    "uva_ars": 2116.04,
+    "uva_date": "2026-09-13",
     "source": "Banco Central de la República Argentina",
     "source_url": "https://www.bcra.gob.ar/tasas-de-interes/",
     "note": "La tasa es promedio ponderado de préstamos hipotecarios UVA otorgados y se adiciona a la actualización por UVA. No representa una oferta bancaria particular."
   },
   "exchange_rate": {
-    "ars_per_usd": 1533.53,
-    "date": "2026-09-09",
+    "ars_per_usd": 1531.73,
+    "date": "2026-09-11",
     "series": "Tipo de cambio minorista ($ por USD), Comunicación B 9791, promedio vendedor",
     "source": "Banco Central de la República Argentina",
     "source_url": "https://www.bcra.gob.ar/tipo-de-cambio-minorista/"
@@ -46,6 +61,6 @@
     "default_area_m2": 50,
     "default_down_payment_pct": 20,
     "purpose": "Comparar un precio publicado en USD con el ingreso mediano mensual del hogar convertido al tipo de cambio oficial de referencia.",
-    "limitations": "Combina períodos distintos: ingreso EPH 2026-Q1, crédito 2026-08, tipo de cambio 2026-09-09 y mercado 2026-08/09. No estima aprobación, cuota, impuestos, gastos ni precio final de escritura."
+    "limitations": "Combina el último período disponible de cada fuente, que puede no ser concurrente. No estima aprobación, cuota, impuestos, gastos ni precio final de escritura."
   }
 }

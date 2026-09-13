@@ -27,7 +27,7 @@
           <button class="nav-link" data-view="metodologia">Metodología</button>
         </nav>
         <div class="header-actions">
-          <span class="demo-pill official-pill"><i></i> Paso 6 · Crédito e ingresos</span>
+          <span class="demo-pill official-pill"><i></i> Paso 7 · Fuentes automáticas</span>
           <button class="icon-button" id="openInfo" aria-label="Información sobre los datos">i</button>
         </div>
       </header>
@@ -280,6 +280,11 @@
             <div class="scope-card affordability-scope"><span>Regla metodológica</span><strong>Contexto, no puntaje</strong><p>Estos datos tienen escala de aglomerado o nacional. No se reparten entre barrios ni modifican el ranking zonal.</p></div>
           </div>
 
+          <section class="official-pipeline" aria-live="polite">
+            <div class="pipeline-summary"><span class="pipeline-dot" id="officialPipelineDot"></span><div><small>Paso 7 · Actualización oficial</small><strong id="officialPipelineTitle">Comprobando conectores…</strong><span id="officialPipelineChecked">Último control pendiente</span></div></div>
+            <div class="connector-grid" id="officialConnectorGrid"><p>Cargando estado de las fuentes…</p></div>
+          </section>
+
           <div class="affordability-kpis" aria-live="polite">
             <article><span>Ingreso mediano del hogar</span><b id="affIncome">Cargando…</b><small id="affIncomePeriod">Gran Santa Fe · EPH</small></article>
             <article><span>Tasa hipotecaria UVA</span><b id="affRate">—</b><small id="affCreditPeriod">promedio del sistema</small></article>
@@ -336,7 +341,7 @@
             <article class="risk-card"><span class="method-num">−R</span><h3>Riesgo</h3><p>Exposición hídrica, oferta excesiva, baja muestra y datos antiguos.</p></article>
           </div>
           <div class="sources-section"><div><span class="zone-kicker">Fuentes incorporadas y previstas</span><h2>Trazabilidad desde el origen</h2></div><div class="source-tags"><span class="source-live">INDEC · incorporada</span><span class="source-live">SCIT · incorporada</span><span class="source-live">IPEC · incorporada</span><span class="source-live">TuLugar · incorporada</span><span class="source-live">BCRA · incorporada</span><span>Colegio de Escribanos</span></div></div>
-          <div class="method-notice step-complete"><b>Paso 6 completado · Crédito e ingresos</b><p>La accesibilidad combina microdatos EPH de Gran Santa Fe, condiciones observadas de hipotecarios UVA y tipo de cambio oficial. La comparación queda fuera del puntaje hasta contar con períodos concurrentes e información territorial más fina.</p></div>
+          <div class="method-notice step-complete"><b>Paso 7 completado · Fuentes oficiales automáticas</b><p>El proceso mensual actualiza mercado, construcción, ingresos y variables financieras. Cada conector se valida por separado; ante un error conserva el último archivo válido, publica el estado degradado y genera una alerta sin contaminar los datos.</p></div>
         </section>
       </main>
     </div>

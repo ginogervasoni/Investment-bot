@@ -1,4 +1,4 @@
-name: Update Santa Fe market data
+name: Update Santa Fe real estate data
 
 on:
   push:
@@ -6,7 +6,11 @@ on:
     paths:
       - ".github/workflows/update-market-data.yml"
       - "scripts/extract_tulugar_market.py"
+      - "scripts/extract_ipec_construction.py"
+      - "scripts/extract_affordability.py"
       - "scripts/validate_market_data.py"
+      - "scripts/validate_official_data.py"
+      - "scripts/build_pipeline_status.py"
   schedule:
     - cron: "17 8 1 * *"
       timezone: "America/Argentina/Cordoba"
@@ -16,7 +20,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: update-santa-fe-market
+  group: update-santa-fe-real-estate-data
   cancel-in-progress: false
 
 jobs:
@@ -31,29 +35,86 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Preserve previous dataset
-        run: cp data/market-santa-fe.json /tmp/market-santa-fe-previous.json
+      - name: Install official workbook readers
+        run: python -m pip install --disable-pip-version-check openpyxl==3.1.5 xlrd==2.0.1
 
-      - name: Download latest authorized aggregates
+      - name: Preserve previous datasets
+        run: |
+          cp data/market-santa-fe.json /tmp/market-santa-fe-previous.json
+          cp data/construction-series.json /tmp/construction-series-previous.json
+          cp data/affordability-santa-fe.json /tmp/affordability-santa-fe-previous.json
+
+      - name: Update authorized market aggregates
+        id: market
+        continue-on-error: true
         run: python scripts/extract_tulugar_market.py
 
-      - name: Validate periods, totals and territorial matches
+      - name: Update official IPEC construction data
+        id: ipec
+        continue-on-error: true
+        run: python scripts/extract_ipec_construction.py
+
+      - name: Update official INDEC and BCRA data
+        id: indec_bcra
+        continue-on-error: true
+        run: python scripts/extract_affordability.py
+
+      - name: Validate market periods, totals and territorial matches
+        id: validate_market
+        if: steps.market.outcome == 'success'
+        continue-on-error: true
         run: python scripts/validate_market_data.py --previous /tmp/market-santa-fe-previous.json
+
+      - name: Validate IPEC periods and values
+        id: validate_ipec
+        if: steps.ipec.outcome == 'success'
+        continue-on-error: true
+        run: python scripts/validate_official_data.py --only construction --previous-construction /tmp/construction-series-previous.json
+
+      - name: Validate INDEC and BCRA periods and values
+        id: validate_indec_bcra
+        if: steps.indec_bcra.outcome == 'success'
+        continue-on-error: true
+        run: python scripts/validate_official_data.py --only affordability --previous-affordability /tmp/affordability-santa-fe-previous.json
+
+      - name: Restore last valid data after a connector failure
+        if: always()
+        env:
+          MARKET_OK: ${{ steps.market.outcome == 'success' && steps.validate_market.outcome == 'success' }}
+          IPEC_OK: ${{ steps.ipec.outcome == 'success' && steps.validate_ipec.outcome == 'success' }}
+          INDEC_BCRA_OK: ${{ steps.indec_bcra.outcome == 'success' && steps.validate_indec_bcra.outcome == 'success' }}
+        run: |
+          if [ "$MARKET_OK" != "true" ]; then cp /tmp/market-santa-fe-previous.json data/market-santa-fe.json; fi
+          if [ "$IPEC_OK" != "true" ]; then cp /tmp/construction-series-previous.json data/construction-series.json; fi
+          if [ "$INDEC_BCRA_OK" != "true" ]; then cp /tmp/affordability-santa-fe-previous.json data/affordability-santa-fe.json; fi
+
+      - name: Publish connector status
+        if: always()
+        env:
+          PIPELINE_MARKET_STATUS: ${{ steps.market.outcome == 'success' && steps.validate_market.outcome == 'success' && 'success' || 'error' }}
+          PIPELINE_IPEC_STATUS: ${{ steps.ipec.outcome == 'success' && steps.validate_ipec.outcome == 'success' && 'success' || 'error' }}
+          PIPELINE_INDEC_BCRA_STATUS: ${{ steps.indec_bcra.outcome == 'success' && steps.validate_indec_bcra.outcome == 'success' && 'success' || 'error' }}
+        run: python scripts/build_pipeline_status.py
 
       - name: Detect real changes
         id: changes
+        if: always()
         run: |
-          if git diff --quiet -- data/market-santa-fe.json data/source-catalog.json; then
+          if git diff --quiet -- data/market-santa-fe.json data/construction-series.json data/affordability-santa-fe.json data/pipeline-status.json data/source-catalog.json; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Commit updated market data
-        if: steps.changes.outputs.changed == 'true'
+      - name: Commit validated updates
+        if: always() && steps.changes.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/market-santa-fe.json data/source-catalog.json
-          git commit -m "Update Santa Fe market data"
+          git add data/market-santa-fe.json data/construction-series.json data/affordability-santa-fe.json data/pipeline-status.json data/source-catalog.json
+          git commit -m "Update Santa Fe real estate data"
           git push
+
+      - name: Report degraded connector state
+        if: always() && (steps.market.outcome != 'success' || steps.validate_market.outcome != 'success' || steps.ipec.outcome != 'success' || steps.validate_ipec.outcome != 'success' || steps.indec_bcra.outcome != 'success' || steps.validate_indec_bcra.outcome != 'success')
+        run: exit 1

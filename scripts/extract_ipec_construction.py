@@ -10,9 +10,12 @@ from __future__ import annotations
 
 import json
 import re
+import time
 import urllib.request
 from datetime import datetime, timezone
+from html import unescape
 from pathlib import Path
+from urllib.parse import urljoin
 
 import openpyxl
 
@@ -21,10 +24,14 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "construction-series.json"
 TMP = ROOT / ".data-cache"
 
-URLS = {
+FALLBACK_URLS = {
     "cost_variations": "https://www.estadisticasantafe.gob.ar/wp-content/uploads/sites/24/2026/09/Variaciones-nivel-general-y-capitulos.-Enero-2022-julio-2026-2.xlsx",
     "cost_values": "https://www.estadisticasantafe.gob.ar/wp-content/uploads/sites/24/2026/09/Valor-total-m2-y-por-capitulos.-Enero-2022-julio-2026-1.xlsx",
     "permits": "https://www.estadisticasantafe.gob.ar/wp-content/uploads/sites/24/2026/05/Permisos-de-Edificacion-en-m2-por-municipio.-Ene-2010-a-jul-2026-.xlsx",
+}
+PAGES = {
+    "cost": "https://www.estadisticasantafe.gob.ar/contenido/costo-de-la-construccion-aglomerados-santa-fe-y-rosario/",
+    "permits": "https://www.estadisticasantafe.gob.ar/contenido/permisos-de-edificacion-2/",
 }
 
 MONTHS = {
@@ -34,13 +41,47 @@ MONTHS = {
 }
 
 
+def download_bytes(url: str) -> bytes:
+    request = urllib.request.Request(url, headers={"User-Agent": "Nodo-Santa-Fe/1.0"})
+    last_error = None
+    for attempt in range(4):
+        try:
+            with urllib.request.urlopen(request, timeout=90) as response:
+                return response.read()
+        except OSError as error:
+            last_error = error
+            if attempt < 3:
+                time.sleep(2 ** attempt)
+    raise last_error
+
+
+def discover_workbook(page: str, keywords: tuple[str, ...], fallback: str) -> str:
+    try:
+        html = download_bytes(page).decode("utf-8", errors="ignore")
+        links = [unescape(value) for value in re.findall(r'href=["\']([^"\']+\.xlsx[^"\']*)', html, re.I)]
+        candidates = [urljoin(page, link) for link in links if all(word in link.lower() for word in keywords)]
+        return sorted(candidates)[-1] if candidates else fallback
+    except OSError:
+        return fallback
+
+
 def download(name: str, url: str) -> Path:
     TMP.mkdir(exist_ok=True)
     target = TMP / f"{name}.xlsx"
-    request = urllib.request.Request(url, headers={"User-Agent": "Nodo-Santa-Fe/1.0"})
-    with urllib.request.urlopen(request, timeout=60) as response, target.open("wb") as file:
-        file.write(response.read())
+    target.write_bytes(download_bytes(url))
     return target
+
+
+def write_if_changed(payload: dict) -> None:
+    if OUT.exists():
+        previous = json.loads(OUT.read_text(encoding="utf-8"))
+        old_comparable = {key: value for key, value in previous.items() if key != "generated_at"}
+        new_comparable = {key: value for key, value in payload.items() if key != "generated_at"}
+        if old_comparable == new_comparable:
+            print(f"Sin cambios oficiales: {OUT}")
+            return
+    OUT.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(f"Actualizado {OUT}")
 
 
 def clean_month(value: object) -> str:
@@ -86,7 +127,12 @@ def parse_permits(path: Path) -> list[dict]:
 
 
 def main() -> None:
-    files = {name: download(name, url) for name, url in URLS.items()}
+    urls = {
+        "cost_variations": discover_workbook(PAGES["cost"], ("variaciones", "nivel-general"), FALLBACK_URLS["cost_variations"]),
+        "cost_values": discover_workbook(PAGES["cost"], ("valor-total", "m2"), FALLBACK_URLS["cost_values"]),
+        "permits": discover_workbook(PAGES["permits"], ("permisos-de-edificacion", "municipio"), FALLBACK_URLS["permits"]),
+    }
+    files = {name: download(name, url) for name, url in urls.items()}
     costs = parse_costs(files["cost_variations"], files["cost_values"])
     permits = parse_permits(files["permits"])
     latest = costs[-1]
@@ -115,8 +161,8 @@ def main() -> None:
             {"title": "Permisos de edificación", "publisher": "IPEC", "url": "https://www.estadisticasantafe.gob.ar/contenido/permisos-de-edificacion-2/", "status": "administrative_records"},
         ],
     }
-    OUT.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"Escrito {OUT} ({len(costs)} costos, {len(permits)} permisos)")
+    write_if_changed(payload)
+    print(f"Fuentes procesadas: {len(costs)} costos, {len(permits)} permisos")
 
 
 if __name__ == "__main__":

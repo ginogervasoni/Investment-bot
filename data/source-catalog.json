@@ -83,8 +83,8 @@
       "exchange_rate_url": "https://www.bcra.gob.ar/tipo-de-cambio-minorista/",
       "geographic_level": "Argentina · sistema financiero",
       "latest_credit_period": "2026-08",
-      "exchange_rate_date": "2026-09-09",
-      "uva_date": "2026-09-11",
+      "exchange_rate_date": "2026-09-11",
+      "uva_date": "2026-09-13",
       "accessed_at": "2026-09-13",
       "variables": [
         "tasa promedio ponderada de hipotecarios UVA",
@@ -93,7 +93,7 @@
         "valor diario de la UVA",
         "tipo de cambio minorista vendedor B 9791"
       ],
-      "purpose": "Contextualizar las condiciones financieras y convertir de forma documentada ingresos en ARS y precios publicados en USD",
+      "purpose": "Contextualizar las condiciones financieras y convertir de forma documentada ingresos en ARS y precios publicados en USD. Las variables diarias se actualizan mediante la API oficial v4.",
       "limitations": "Los promedios del sistema no son una oferta bancaria. La tasa informada se adiciona a la actualización por UVA. La conversión entre períodos no reemplaza una evaluación crediticia ni una tasación."
     },
     {

@@ -3,26 +3,20 @@
 
 from __future__ import annotations
 
-import argparse
 import csv
 import io
 import json
 import urllib.request
 import zipfile
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 import xlrd
 
 EPH_URL = "https://www.indec.gob.ar/ftp/cuadros/menusuperior/eph/EPH_usu_{period}_txt.zip"
 BCRA_UVA_URL = "https://www.bcra.gob.ar/archivos/Pdfs/PublicacionesEstadisticas/preser_uva.xls"
-PERIODS = [
-    ("1_Trim_2025", "T125", "2025-Q1"),
-    ("2_Trim_2025", "T225", "2025-Q2"),
-    ("3_Trim_2025", "T325", "2025-Q3"),
-    ("4_Trim_2025", "T425", "2025-Q4"),
-    ("1_Trim_2026", "T126", "2026-Q1"),
-]
+BCRA_API = "https://api.bcra.gob.ar/estadisticas/v4.0/monetarias"
+OUT = Path(__file__).resolve().parents[1] / "data" / "affordability-santa-fe.json"
 
 
 def download(url: str) -> bytes:
@@ -46,7 +40,9 @@ def weighted_median(values: list[tuple[float, float]]) -> float:
     raise ValueError("No weighted observations")
 
 
-def eph_household_stats(period_slug: str, file_token: str) -> dict[str, int]:
+def eph_household_stats(year: int, quarter: int) -> dict[str, int]:
+    period_slug = f"{quarter}_Trim_{year}"
+    file_token = f"T{quarter}{str(year)[-2:]}"
     archive = zipfile.ZipFile(io.BytesIO(download(EPH_URL.format(period=period_slug))))
     member = next(name for name in archive.namelist() if f"hogar_{file_token}" in name)
     with archive.open(member) as raw:
@@ -73,6 +69,25 @@ def eph_household_stats(period_slug: str, file_token: str) -> dict[str, int]:
     }
 
 
+def available_eph_periods(count: int = 5) -> list[tuple[int, int, dict[str, int]]]:
+    today = date.today()
+    year, quarter = today.year, (today.month - 1) // 3 + 1
+    found = []
+    for _ in range(12):
+        try:
+            stats = eph_household_stats(year, quarter)
+            found.append((year, quarter, stats))
+            if len(found) == count:
+                return list(reversed(found))
+        except (OSError, ValueError, KeyError, zipfile.BadZipFile, StopIteration):
+            pass
+        quarter -= 1
+        if quarter == 0:
+            year -= 1
+            quarter = 4
+    raise RuntimeError(f"Solo se encontraron {len(found)} períodos EPH válidos")
+
+
 def bcra_credit() -> dict[str, float | int | str]:
     workbook = xlrd.open_workbook(file_contents=download(BCRA_UVA_URL))
     sheet = workbook.sheet_by_name("Datos")
@@ -88,31 +103,44 @@ def bcra_credit() -> dict[str, float | int | str]:
     }
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--output", default="data/affordability-santa-fe.json")
-    parser.add_argument("--fx", type=float, required=True, help="BCRA B9791 seller ARS/USD")
-    parser.add_argument("--fx-date", required=True)
-    parser.add_argument("--uva", type=float, required=True)
-    parser.add_argument("--uva-date", required=True)
-    args = parser.parse_args()
+def bcra_latest(variable_id: int) -> tuple[str, float]:
+    payload = json.loads(download(f"{BCRA_API}?idVariable={variable_id}&limit=10"))
+    row = payload["results"][0]
+    return row["ultFechaInformada"], float(row["ultValorInformado"])
 
+
+def write_if_changed(payload: dict) -> None:
+    if OUT.exists():
+        previous = json.loads(OUT.read_text(encoding="utf-8"))
+        old_comparable = {key: value for key, value in previous.items() if key != "generated_at"}
+        new_comparable = {key: value for key, value in payload.items() if key != "generated_at"}
+        if old_comparable == new_comparable:
+            print(f"Sin cambios oficiales: {OUT}")
+            return
+    OUT.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(f"Actualizado {OUT}")
+
+
+def main() -> None:
     history = []
     latest = None
-    for slug, token, label in PERIODS:
-        stats = eph_household_stats(slug, token)
+    periods = available_eph_periods()
+    for year, quarter, stats in periods:
+        label = f"{year}-Q{quarter}"
         history.append({"period": label, "median_household_income_ars_month": stats["median"]})
         latest = stats
     assert latest is not None
     credit = bcra_credit()
+    fx_date, fx_value = bcra_latest(4)
+    uva_date, uva_value = bcra_latest(31)
 
     payload = {
         "schema_version": "1.0",
-        "generated_at": date.today().isoformat(),
+        "generated_at": datetime.now(timezone.utc).date().isoformat(),
         "income": {
             "geography": "Gran Santa Fe",
             "agglomerate_code": 10,
-            "latest_period": PERIODS[-1][2],
+            "latest_period": history[-1]["period"],
             "median_household_income_ars_month": latest["median"],
             "mean_household_income_ars_month": latest["mean"],
             "median_per_capita_income_ars_month": latest["median_per_capita"],
@@ -131,15 +159,15 @@ def main() -> None:
             "mortgage_uva_average_term_days": credit["term_days"],
             "mortgage_uva_average_term_years": credit["term_years"],
             "mortgage_uva_amount_granted_ars": credit["amount_ars"],
-            "uva_ars": args.uva,
-            "uva_date": args.uva_date,
+            "uva_ars": round(uva_value, 2),
+            "uva_date": uva_date,
             "source": "Banco Central de la República Argentina",
             "source_url": "https://www.bcra.gob.ar/tasas-de-interes/",
             "note": "La tasa es promedio ponderado de préstamos hipotecarios UVA otorgados y se adiciona a la actualización por UVA. No representa una oferta bancaria particular.",
         },
         "exchange_rate": {
-            "ars_per_usd": args.fx,
-            "date": args.fx_date,
+            "ars_per_usd": round(fx_value, 2),
+            "date": fx_date,
             "series": "Tipo de cambio minorista ($ por USD), Comunicación B 9791, promedio vendedor",
             "source": "Banco Central de la República Argentina",
             "source_url": "https://www.bcra.gob.ar/tipo-de-cambio-minorista/",
@@ -148,10 +176,10 @@ def main() -> None:
             "default_area_m2": 50,
             "default_down_payment_pct": 20,
             "purpose": "Comparar un precio publicado en USD con el ingreso mediano mensual del hogar convertido al tipo de cambio oficial de referencia.",
-            "limitations": "Combina períodos distintos: ingreso EPH 2026-Q1, crédito 2026-08, tipo de cambio 2026-09-09 y mercado 2026-08/09. No estima aprobación, cuota, impuestos, gastos ni precio final de escritura.",
+            "limitations": "Combina el último período disponible de cada fuente, que puede no ser concurrente. No estima aprobación, cuota, impuestos, gastos ni precio final de escritura.",
         },
     }
-    Path(args.output).write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    write_if_changed(payload)
 
 
 if __name__ == "__main__":

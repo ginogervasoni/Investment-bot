@@ -80,9 +80,22 @@ El simulador combina estas referencias con el precio de oferta de departamentos 
 La extracción se reproduce con:
 
 ```bash
-python scripts/extract_affordability.py \
-  --fx 1533.53 --fx-date 2026-09-09 \
-  --uva 2114.62 --uva-date 2026-09-11
+python scripts/extract_affordability.py
 ```
 
-El script descarga cinco trimestres de EPH y la planilla mensual de préstamos UVA del BCRA. Los dos valores diarios se pasan explícitamente para que la fecha de corte quede auditada.
+El script detecta y descarga los cinco trimestres EPH más recientes, procesa la planilla mensual de préstamos UVA y consulta las variables 4 y 31 de la API v4 del BCRA para obtener dólar minorista vendedor y UVA.
+
+## Paso 7 — Automatización de fuentes oficiales
+
+El flujo `.github/workflows/update-market-data.yml` actualiza mensualmente los cuatro bloques de información: mercado, construcción, ingresos y finanzas. Sus controles principales son:
+
+1. cada conector se ejecuta y valida de manera independiente;
+2. IPEC descubre las planillas más recientes desde las páginas oficiales y conserva enlaces conocidos como respaldo;
+3. INDEC detecta automáticamente el último trimestre EPH disponible;
+4. BCRA se consulta mediante su API oficial v4 y su planilla mensual de hipotecarios UVA;
+5. ninguna serie puede retroceder de período ni publicar valores fuera de rango;
+6. un conector fallido restaura su último archivo válido;
+7. `pipeline-status.json` informa el resultado de cada fuente y la fecha del último control;
+8. el flujo termina con alerta cuando alguna fuente queda degradada, incluso después de proteger los datos vigentes.
+
+El frontend intenta leer el estado publicado en GitHub y utiliza la copia incluida en la versión del sitio como respaldo. La actualización mensual se ejecuta el día 1 a las 08:17 de Argentina y también puede iniciarse manualmente desde GitHub Actions.

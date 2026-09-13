@@ -13,7 +13,7 @@ const zones = [
 
 const profiles={balanced:{demand:.30,development:.25,infrastructure:.20,yield:.15,growth:.10,risk:.18},rent:{demand:.32,development:.08,infrastructure:.20,yield:.30,growth:.10,risk:.20},growth:{demand:.24,development:.25,infrastructure:.16,yield:.08,growth:.27,risk:.18},development:{demand:.18,development:.38,infrastructure:.18,yield:.06,growth:.20,risk:.20},conservative:{demand:.27,development:.12,infrastructure:.28,yield:.16,growth:.07,risk:.32}};
 const state={metric:'score',strategy:'balanced',minScore:45,selected:'candioti-norte',compare:[]};
-let map,markers=new Map(),officialBoundaries,censusLayer,censusData,constructionData,marketData,affordabilityData;
+let map,markers=new Map(),officialBoundaries,censusLayer,censusData,constructionData,marketData,affordabilityData,pipelineData;
 
 const $=s=>document.querySelector(s); const $$=s=>[...document.querySelectorAll(s)];
 const fmt=n=>new Intl.NumberFormat('es-AR').format(n);
@@ -22,6 +22,9 @@ const pct=n=>`${n>=0?'+':''}${n.toFixed(1).replace('.',',')}%`;
 const periodLabel=period=>{const [year,month]=period.split('-').map(Number);return new Intl.DateTimeFormat('es-AR',{month:'short',year:'numeric'}).format(new Date(year,month-1,1)).replace('.','')};
 const quarterLabel=period=>{const [year,quarter]=period.split('-Q');return `${quarter}º trim ${year}`};
 const MARKET_REMOTE_URL='https://raw.githubusercontent.com/ginogervasoni/Investment-bot/main/data/market-santa-fe.json';
+const CONSTRUCTION_REMOTE_URL='https://raw.githubusercontent.com/ginogervasoni/Investment-bot/main/data/construction-series.json';
+const AFFORDABILITY_REMOTE_URL='https://raw.githubusercontent.com/ginogervasoni/Investment-bot/main/data/affordability-santa-fe.json';
+const PIPELINE_REMOTE_URL='https://raw.githubusercontent.com/ginogervasoni/Investment-bot/main/data/pipeline-status.json';
 
 function validMarketPayload(data){
   const city=data?.city,zones=data?.zones;
@@ -30,9 +33,10 @@ function validMarketPayload(data){
 
 async function loadConstructionData(){
   try{
-    const response=await fetch('data/construction-series.json');
-    if(!response.ok)throw new Error(`HTTP ${response.status}`);
-    constructionData=await response.json();renderConstruction();
+    let response;
+    try{response=await fetch(`${CONSTRUCTION_REMOTE_URL}?v=${Date.now()}`,{cache:'no-store'});if(!response.ok)throw new Error(`HTTP ${response.status}`);constructionData=await response.json();if(constructionData?.schema_version!=='1.0')throw new Error('Datos remotos inválidos')}
+    catch(remoteError){response=await fetch('data/construction-series.json');if(!response.ok)throw new Error(`HTTP ${response.status}`);constructionData=await response.json();if(constructionData?.schema_version!=='1.0')throw new Error('Datos locales inválidos')}
+    renderConstruction();
   }catch(error){console.error('No se pudo cargar la serie de construcción',error);$('#constructionCost').textContent='No disponible';$('#constructionUpdated').textContent='No fue posible cargar la serie oficial.'}
 }
 
@@ -64,9 +68,10 @@ function renderMarketOverview(){
 
 async function loadAffordabilityData(){
   try{
-    const response=await fetch('data/affordability-santa-fe.json');
-    if(!response.ok)throw new Error(`HTTP ${response.status}`);
-    affordabilityData=await response.json();renderAffordability();
+    let response;
+    try{response=await fetch(`${AFFORDABILITY_REMOTE_URL}?v=${Date.now()}`,{cache:'no-store'});if(!response.ok)throw new Error(`HTTP ${response.status}`);affordabilityData=await response.json();if(affordabilityData?.schema_version!=='1.0')throw new Error('Datos remotos inválidos')}
+    catch(remoteError){response=await fetch('data/affordability-santa-fe.json');if(!response.ok)throw new Error(`HTTP ${response.status}`);affordabilityData=await response.json();if(affordabilityData?.schema_version!=='1.0')throw new Error('Datos locales inválidos')}
+    renderAffordability();
   }catch(error){console.error('No se pudieron cargar los datos de accesibilidad',error);$('#affIncome').textContent='No disponible';$('#affUpdated').textContent='No fue posible cargar la serie oficial.'}
 }
 
@@ -99,6 +104,29 @@ function renderAffordability(){
   $('#affIncome').textContent=money(income.median_household_income_ars_month);$('#affIncomePeriod').textContent=`Gran Santa Fe · ${quarterLabel(income.latest_period)}`;$('#affRate').textContent=`UVA + ${credit.mortgage_uva_nominal_annual_rate_pct.toFixed(2).replace('.',',')}%`;$('#affCreditPeriod').textContent=`promedio del sistema · ${periodLabel(credit.latest_period)}`;$('#affTerm').textContent=`${credit.mortgage_uva_average_term_years.toFixed(1).replace('.',',')} años`;$('#affUva').textContent=money(credit.uva_ars);$('#affUvaDate').textContent=`BCRA · ${credit.uva_date.split('-').reverse().join('/')}`;
   $('#affCreditAmount').textContent=`${money(credit.mortgage_uva_amount_granted_ars/1000000000)} mil millones`;$('#affRateExplain').textContent=`UVA + ${credit.mortgage_uva_nominal_annual_rate_pct.toFixed(2).replace('.',',')}% no es una tasa fija en pesos.`;$('#affLimitations').textContent=calculator.limitations;$('#affUpdated').textContent=`EPH ${quarterLabel(income.latest_period)} · crédito ${periodLabel(credit.latest_period)} · dólar BCRA ${fx.date.split('-').reverse().join('/')}`;
   renderIncomeChart(income.series);renderAffordabilityCalculator();
+}
+
+function pipelinePeriod(value){
+  if(value.includes('-Q'))return quarterLabel(value);
+  if(value.length===10)return value.split('-').reverse().join('/');
+  return periodLabel(value);
+}
+
+async function loadPipelineStatus(){
+  try{
+    let response;
+    try{response=await fetch(`${PIPELINE_REMOTE_URL}?v=${Date.now()}`,{cache:'no-store'});if(!response.ok)throw new Error(`HTTP ${response.status}`);pipelineData=await response.json()}
+    catch(remoteError){response=await fetch('data/pipeline-status.json');if(!response.ok)throw new Error(`HTTP ${response.status}`);pipelineData=await response.json()}
+    if(pipelineData?.schema_version!=='1.0'||!pipelineData?.connectors)throw new Error('Estado inválido');
+    renderPipelineStatus();
+  }catch(error){console.error('No se pudo cargar el estado de conectores',error);$('#officialPipelineTitle').textContent='Estado no disponible';$('#officialPipelineChecked').textContent='Los datos publicados continúan visibles';$('#officialPipelineDot').classList.add('error')}
+}
+
+function renderPipelineStatus(){
+  const healthy=pipelineData.status==='healthy',checked=new Date(pipelineData.checked_at);
+  $('#officialPipelineTitle').textContent=healthy?'Todos los conectores respondieron':'Actualización parcial · datos protegidos';$('#officialPipelineChecked').textContent=`Último control: ${new Intl.DateTimeFormat('es-AR',{dateStyle:'medium',timeStyle:'short',timeZone:'America/Argentina/Cordoba'}).format(checked)} · próximo: día 1`;$('#officialPipelineDot').classList.toggle('error',!healthy);
+  $('#officialConnectorGrid').innerHTML=Object.values(pipelineData.connectors).map(connector=>`<article class="connector-card ${connector.status}"><div><span class="connector-state"><i></i>${connector.status==='active'?'Activo':'Revisar'}</span><small>${connector.cadence}</small></div><b>${connector.label}</b><span>${connector.publisher}</span><strong>${pipelinePeriod(connector.latest_period)}</strong><p>${connector.detail}</p></article>`).join('');
+  const market=pipelineData.connectors.tulugar;if(market){$('#pipelineStatus').textContent=market.status==='active'?'Automatización activa':'Último dato válido conservado';}
 }
 
 function renderLineChart(target,rows,key){
@@ -201,7 +229,7 @@ function renderComparison(){const selected=state.compare.map(id=>zones.find(z=>z
 function switchView(view){$$('.view').forEach(v=>v.classList.toggle('active',v.id===`view-${view}`));$$('.nav-link').forEach(b=>b.classList.toggle('active',b.dataset.view===view));if(view==='mapa')setTimeout(()=>map.invalidateSize(),50);if(view==='zonas'){renderRanking($('#rankingStrategy').value);renderCompareSelection()}}
 
 document.addEventListener('DOMContentLoaded',()=>{
-  initMap();loadConstructionData();loadMarketData();loadAffordabilityData();selectZone(state.selected);
+  initMap();loadConstructionData();loadMarketData();loadAffordabilityData();loadPipelineStatus();selectZone(state.selected);
   $('#strategy').addEventListener('change',e=>{state.strategy=e.target.value;renderMarkers();selectZone(state.selected)});
   $('#minScore').addEventListener('input',e=>{state.minScore=+e.target.value;$('#scoreOutput').textContent=e.target.value;renderMarkers()});
   $$('.layer-button').forEach(b=>b.addEventListener('click',()=>{$$('.layer-button').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.metric=b.dataset.metric;applyMapMode()}));

@@ -10,6 +10,7 @@ MVP de inteligencia territorial para explorar oportunidades inmobiliarias en San
 - Capa de precios de oferta y panel de mercado con datos autorizados de TuLugar para la ciudad y cuatro zonas compatibles.
 - Actualización automática mensual del mercado con validaciones y respaldo local.
 - Panel de accesibilidad con ingresos EPH de Gran Santa Fe, crédito UVA del BCRA y simulador de esfuerzo de compra.
+- Estado central de conectores con actualización automática y conservación del último dato válido ante fallas.
 - Capas coropléticas de población y porcentaje de hogares inquilinos.
 - Cinco capas: potencial, rentabilidad, valorización, desarrollo y riesgo.
 - Perfiles de inversión con ponderaciones diferentes.
@@ -33,6 +34,8 @@ El Paso 5 automatiza el conector de mercado. GitHub Actions lo ejecuta el primer
 
 El Paso 6 incorpora la mediana ponderada del ingreso total familiar de Gran Santa Fe calculada sobre microdatos EPH (INDEC), junto con la tasa, el plazo y el monto observado de hipotecarios UVA, el valor diario de la UVA y el dólar minorista vendedor del BCRA. Un simulador combina esas referencias con precios publicados para expresar el anticipo en meses de ingreso y el precio total en años de ingreso bruto. La comparación es orientativa, conserva las fechas de cada fuente y no modifica el puntaje zonal.
 
+El Paso 7 unifica las actualizaciones de TuLugar, IPEC, INDEC y BCRA en una ejecución mensual. Cada conector se procesa y valida por separado. Si una descarga o validación falla, el flujo restaura el último archivo válido, publica un estado degradado en `pipeline-status.json` y finaliza con alerta. El sitio consulta ese estado directamente desde GitHub, de modo que puede mostrar el último control sin necesitar una nueva publicación del frontend.
+
 ## Ejecución local
 
 No requiere instalación. Servir la carpeta mediante cualquier servidor HTTP estático, por ejemplo:
@@ -45,8 +48,7 @@ Luego abrir `http://localhost:8080`.
 
 ## Próxima etapa
 
-1. Extender la automatización a los conectores oficiales que tengan nuevas publicaciones.
-2. Ampliar la cobertura territorial con equivalencias verificadas entre barrios y vecinales.
-3. Obtener permisos georreferenciados para construir indicadores por vecinal.
-4. Acumular historia suficiente y recalibrar el puntaje con indicadores reales y pruebas retrospectivas.
-5. Agregar alertas de calidad para fallas o retrasos de las fuentes.
+1. Ampliar la cobertura territorial con equivalencias verificadas entre barrios y vecinales.
+2. Obtener permisos georreferenciados para construir indicadores por vecinal.
+3. Acumular historia suficiente y recalibrar el puntaje con indicadores reales y pruebas retrospectivas.
+4. Conectar una notificación externa para alertas de calidad.
