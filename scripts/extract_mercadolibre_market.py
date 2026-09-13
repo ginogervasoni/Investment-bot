@@ -47,6 +47,51 @@ def normalized(value: object) -> str:
     return " ".join("".join(c for c in text if not unicodedata.combining(c)).lower().split())
 
 
+def application_token() -> str:
+    """Return an API token without persisting credentials or tokens.
+
+    A pre-existing user token remains supported for backwards compatibility.
+    The normal automated path exchanges the application's Client ID and Secret
+    through Mercado Libre's official client-credentials grant on every run.
+    """
+    configured = os.environ.get("MELI_ACCESS_TOKEN", "").strip()
+    if configured:
+        return configured
+
+    client_id = os.environ.get("MELI_CLIENT_ID", "").strip()
+    client_secret = os.environ.get("MELI_CLIENT_SECRET", "").strip()
+    if not client_id or not client_secret:
+        raise RuntimeError("Faltan MELI_CLIENT_ID y MELI_CLIENT_SECRET")
+
+    body = urllib.parse.urlencode(
+        {
+            "grant_type": "client_credentials",
+            "client_id": client_id,
+            "client_secret": client_secret,
+        }
+    ).encode("utf-8")
+    request = urllib.request.Request(
+        f"{API}/oauth/token",
+        data=body,
+        headers={
+            "Accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
+            "User-Agent": "NodoSantaFe/1.0 (market research; aggregated output)",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=45) as response:
+            payload = json.load(response)
+    except urllib.error.HTTPError as error:
+        response_body = error.read(500).decode("utf-8", errors="replace")
+        raise RuntimeError(f"Mercado Libre OAuth HTTP {error.code}: {response_body}") from error
+    token = str(payload.get("access_token") or "").strip() if isinstance(payload, dict) else ""
+    if not token:
+        raise RuntimeError("Mercado Libre no devolvió un access_token de aplicación")
+    return token
+
+
 def api_get(path: str, token: str, params: dict[str, object] | None = None) -> object:
     query = urllib.parse.urlencode(params or {}, doseq=True)
     url = f"{API}{path}{'?' + query if query else ''}"
@@ -169,9 +214,7 @@ def aggregate(rows: list[dict], ars_per_usd: float) -> dict:
 
 
 def main() -> None:
-    token = os.environ.get("MELI_ACCESS_TOKEN", "").strip()
-    if not token:
-        raise SystemExit("Falta MELI_ACCESS_TOKEN; autorice la aplicación antes de ejecutar el conector")
+    token = application_token()
 
     ars_per_usd = json.loads(AFFORDABILITY.read_text(encoding="utf-8"))["exchange_rate"]["ars_per_usd"]
     santa_fe_city_id = city_id(token)

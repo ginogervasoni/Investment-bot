@@ -37,7 +37,7 @@ El Paso 6 incorpora la mediana ponderada del ingreso total familiar de Gran Sant
 
 El Paso 7 unifica las actualizaciones de TuLugar, IPEC, INDEC y BCRA en una ejecución mensual. Cada conector se procesa y valida por separado. Si una descarga o validación falla, el flujo restaura el último archivo válido, publica un estado degradado en `pipeline-status.json` y finaliza con alerta. El sitio consulta ese estado directamente desde GitHub, de modo que puede mostrar el último control sin necesitar una nueva publicación del frontend.
 
-El Paso 8 incorpora un conector separado para Mercado Libre Inmuebles. Consulta la API oficial para departamentos publicados en venta en Santa Fe Capital, normaliza moneda y superficie y genera exclusivamente agregados de ciudad y zonas con coincidencia nominal verificada. No guarda registros individuales ni modifica el puntaje. Hasta completar la autorización OAuth, el sitio muestra el estado `pending_authorization` y no reemplaza la falta de datos con estimaciones.
+El Paso 8 incorpora un conector separado para Mercado Libre Inmuebles. Consulta la API oficial para departamentos publicados en venta en Santa Fe Capital, normaliza moneda y superficie y genera exclusivamente agregados de ciudad y zonas con coincidencia nominal verificada. No guarda registros individuales ni modifica el puntaje. El flujo solicita en memoria un token de aplicación usando `MELI_CLIENT_ID` y `MELI_CLIENT_SECRET`; si Mercado Libre rechaza las credenciales conserva el último dato válido y no reemplaza la falta de datos con estimaciones.
 
 ## Ejecución local
 
@@ -51,7 +51,7 @@ Luego abrir `http://localhost:8080`.
 
 ## Próxima etapa
 
-1. Autorizar la aplicación de Mercado Libre y guardar `MELI_ACCESS_TOKEN` como secreto de GitHub Actions.
+1. Verificar la primera ejecución de Mercado Libre con Client Credentials y activar ese flujo en la aplicación si la API lo requiere.
 2. Ampliar la cobertura territorial con equivalencias verificadas entre barrios y vecinales.
 3. Obtener permisos georreferenciados para construir indicadores por vecinal.
 4. Acumular historia suficiente y recalibrar el puntaje con indicadores reales y pruebas retrospectivas.
