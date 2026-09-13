@@ -1,21 +1,21 @@
 {
   "schema_version": "1.0",
-  "checked_at": "2026-09-13T20:54:13Z",
+  "checked_at": "2026-09-13T21:48:10Z",
   "schedule": {
     "frequency": "monthly",
     "day": 1,
     "time": "08:17",
     "timezone": "America/Argentina/Cordoba"
   },
-  "status": "setup_required",
+  "status": "degraded",
   "connectors": {
     "tulugar": {
       "label": "Mercado",
       "publisher": "TuLugar",
-      "status": "active",
+      "status": "error",
       "latest_period": "2026-09-13",
       "cadence": "mensual",
-      "detail": "4 zonas verificadas"
+      "detail": "fuente no disponible; se conserva el último dato válido"
     },
     "mercadolibre": {
       "label": "Oferta ampliada",
@@ -28,26 +28,26 @@
     "ipec": {
       "label": "Construcción",
       "publisher": "IPEC",
-      "status": "active",
+      "status": "error",
       "latest_period": "2026-07",
       "cadence": "mensual",
-      "detail": "costos y permisos"
+      "detail": "fuente no disponible; se conserva el último dato válido"
     },
     "indec": {
       "label": "Ingresos",
       "publisher": "INDEC · EPH",
-      "status": "active",
+      "status": "error",
       "latest_period": "2026-Q1",
       "cadence": "trimestral",
-      "detail": "Gran Santa Fe"
+      "detail": "fuente no disponible; se conserva el último dato válido"
     },
     "bcra": {
       "label": "Crédito y dólar",
       "publisher": "BCRA",
-      "status": "active",
+      "status": "error",
       "latest_period": "2026-09-11",
       "cadence": "diaria/mensual",
-      "detail": "hipotecarios 2026-08"
+      "detail": "fuente no disponible; se conserva el último dato válido"
     }
   },
   "publication_rule": "El estado se publica únicamente después de que todos los validadores finalizan correctamente."
