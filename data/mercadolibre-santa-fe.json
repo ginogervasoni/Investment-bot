@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "status": "pending_authorization",
+  "status": "authorization_in_progress",
   "generated_at": null,
   "source": {
     "publisher": "Mercado Libre",
@@ -16,10 +16,10 @@
   "city": null,
   "zones": {},
   "privacy": "Solo se publicarán agregados. No se almacenarán IDs, vendedores, direcciones, coordenadas ni descripciones de avisos.",
-  "limitations": "El conector requiere completar Authorization Code OAuth. La API rechazó el uso de Client Credentials; no se muestran estimaciones ni datos simulados mientras esté pendiente.",
+  "limitations": "La autorización OAuth fue concedida y está pendiente su primera ejecución validada. No se muestran estimaciones ni datos simulados mientras se procesa.",
   "activation": {
     "status": "required",
-    "secret": "MELI_ACCESS_TOKEN",
-    "instruction": "Autorizar la aplicación mediante Authorization Code OAuth y guardar el access token únicamente como secreto de GitHub Actions."
+    "secret": "MELI_AUTH_CODE",
+    "instruction": "Intercambiar el código temporal dentro de GitHub Actions y publicar únicamente agregados validados."
   }
 }

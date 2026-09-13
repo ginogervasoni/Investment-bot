@@ -56,8 +56,11 @@ jobs:
         id: meli_auth
         env:
           MELI_ACCESS_TOKEN: ${{ secrets.MELI_ACCESS_TOKEN }}
+          MELI_CLIENT_ID: ${{ secrets.MELI_CLIENT_ID }}
+          MELI_CLIENT_SECRET: ${{ secrets.MELI_CLIENT_SECRET }}
+          MELI_AUTH_CODE: ${{ secrets.MELI_AUTH_CODE }}
         run: |
-          if [ -n "$MELI_ACCESS_TOKEN" ]; then
+          if [ -n "$MELI_ACCESS_TOKEN" ] || { [ -n "$MELI_CLIENT_ID" ] && [ -n "$MELI_CLIENT_SECRET" ] && [ -n "$MELI_AUTH_CODE" ]; }; then
             echo "configured=true" >> "$GITHUB_OUTPUT"
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
@@ -69,6 +72,9 @@ jobs:
         continue-on-error: true
         env:
           MELI_ACCESS_TOKEN: ${{ secrets.MELI_ACCESS_TOKEN }}
+          MELI_CLIENT_ID: ${{ secrets.MELI_CLIENT_ID }}
+          MELI_CLIENT_SECRET: ${{ secrets.MELI_CLIENT_SECRET }}
+          MELI_AUTH_CODE: ${{ secrets.MELI_AUTH_CODE }}
         run: python scripts/extract_mercadolibre_market.py
 
       - name: Update official IPEC construction data

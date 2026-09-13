@@ -34,7 +34,7 @@ function validMarketPayload(data){
 
 function validMeliPayload(data){
   if(data?.schema_version!=='1.0'||data?.source?.publisher!=='Mercado Libre')return false;
-  if(['pending_authorization','pending_credentials_check'].includes(data.status))return data.city===null&&data.zones&&Object.keys(data.zones).length===0;
+  if(['pending_authorization','pending_credentials_check','authorization_in_progress'].includes(data.status))return data.city===null&&data.zones&&Object.keys(data.zones).length===0;
   return data.status==='active'&&data.city&&Number.isFinite(data.city.listings)&&data.city.listings>0&&Number.isFinite(data.city.sample_with_area);
 }
 
@@ -50,9 +50,9 @@ async function loadMeliData(){
 function renderMeliMarket(){
   const state=$('#meliState'),intro=$('#meliIntro'),kpis=$('#meliKpis');
   if(meliData.status!=='active'){
-    state.className='meli-state pending';state.innerHTML='<i></i>Pendiente de OAuth';kpis.hidden=true;
-    intro.textContent='La aplicación ya está creada y sus credenciales están protegidas. Falta autorizar la cuenta mediante Authorization Code OAuth antes de consultar la API.';
-    $('#meliUpdated').textContent='Sin datos hasta completar OAuth';return;
+    state.className='meli-state pending';state.innerHTML='<i></i>Procesando autorización';kpis.hidden=true;
+    intro.textContent='La cuenta ya fue autorizada. El conector está ejecutando y validando la primera muestra de Mercado Libre.';
+    $('#meliUpdated').textContent='Primera ejecución en curso';return;
   }
   const city=meliData.city;
   state.className='meli-state active';state.innerHTML='<i></i>API activa';kpis.hidden=false;

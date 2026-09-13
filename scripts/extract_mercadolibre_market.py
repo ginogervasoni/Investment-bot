@@ -23,6 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "mercadolibre-santa-fe.json"
 AFFORDABILITY = ROOT / "data" / "affordability-santa-fe.json"
 API = "https://api.mercadolibre.com"
+REDIRECT_URI = "https://nodo-santa-fe.ginogervasoni.chatgpt.site/oauth/mercadolibre/callback"
 SITE_ID = "MLA"
 REAL_ESTATE_CATEGORY = "MLA1459"
 PAGE_SIZE = 50
@@ -45,6 +46,49 @@ ZONE_ALIASES = {
 def normalized(value: object) -> str:
     text = unicodedata.normalize("NFKD", str(value or ""))
     return " ".join("".join(c for c in text if not unicodedata.combining(c)).lower().split())
+
+
+def access_token() -> str:
+    """Use an existing token or exchange the one-time OAuth authorization code."""
+    existing = os.environ.get("MELI_ACCESS_TOKEN", "").strip()
+    if existing:
+        return existing
+
+    client_id = os.environ.get("MELI_CLIENT_ID", "").strip()
+    client_secret = os.environ.get("MELI_CLIENT_SECRET", "").strip()
+    authorization_code = os.environ.get("MELI_AUTH_CODE", "").strip()
+    if not client_id or not client_secret or not authorization_code:
+        raise RuntimeError("Falta MELI_ACCESS_TOKEN o el conjunto MELI_CLIENT_ID, MELI_CLIENT_SECRET y MELI_AUTH_CODE")
+
+    body = urllib.parse.urlencode(
+        {
+            "grant_type": "authorization_code",
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "code": authorization_code,
+            "redirect_uri": REDIRECT_URI,
+        }
+    ).encode("utf-8")
+    request = urllib.request.Request(
+        f"{API}/oauth/token",
+        data=body,
+        headers={
+            "Accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
+            "User-Agent": "NodoSantaFe/1.0 (market research; aggregated output)",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=45) as response:
+            payload = json.load(response)
+    except urllib.error.HTTPError as error:
+        response_body = error.read(500).decode("utf-8", errors="replace")
+        raise RuntimeError(f"Mercado Libre OAuth HTTP {error.code}: {response_body}") from error
+    token = str(payload.get("access_token") or "").strip() if isinstance(payload, dict) else ""
+    if not token:
+        raise RuntimeError("Mercado Libre no devolvió un access_token")
+    return token
 
 
 def api_get(path: str, token: str, params: dict[str, object] | None = None) -> object:
@@ -169,9 +213,7 @@ def aggregate(rows: list[dict], ars_per_usd: float) -> dict:
 
 
 def main() -> None:
-    token = os.environ.get("MELI_ACCESS_TOKEN", "").strip()
-    if not token:
-        raise SystemExit("Falta MELI_ACCESS_TOKEN; autorice la aplicación antes de ejecutar el conector")
+    token = access_token()
 
     ars_per_usd = json.loads(AFFORDABILITY.read_text(encoding="utf-8"))["exchange_rate"]["ars_per_usd"]
     santa_fe_city_id = city_id(token)

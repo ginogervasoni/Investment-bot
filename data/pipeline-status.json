@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "checked_at": "2026-09-13T20:41:48Z",
+  "checked_at": "2026-09-13T20:52:48Z",
   "schedule": {
     "frequency": "monthly",
     "day": 1,
@@ -13,7 +13,7 @@
       "label": "Mercado",
       "publisher": "TuLugar",
       "status": "active",
-      "latest_period": "2026-09-13",
+      "latest_period": "2026-09-12",
       "cadence": "mensual",
       "detail": "4 zonas verificadas"
     },
