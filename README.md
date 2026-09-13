@@ -9,6 +9,7 @@ MVP de inteligencia territorial para explorar oportunidades inmobiliarias en San
 - Panel de construcción con costo del m² de Gran Santa Fe y permisos de Santa Fe Capital publicados por IPEC.
 - Capa de precios de oferta y panel de mercado con datos autorizados de TuLugar para la ciudad y cuatro zonas compatibles.
 - Actualización automática mensual del mercado con validaciones y respaldo local.
+- Panel de accesibilidad con ingresos EPH de Gran Santa Fe, crédito UVA del BCRA y simulador de esfuerzo de compra.
 - Capas coropléticas de población y porcentaje de hogares inquilinos.
 - Cinco capas: potencial, rentabilidad, valorización, desarrollo y riesgo.
 - Perfiles de inversión con ponderaciones diferentes.
@@ -29,6 +30,8 @@ El Paso 4 agrega datos abiertos de mercado de TuLugar. La fotografía de ciudad 
 La capa de precio de oferta y el panel de mercado son reales. Los valores históricos de rentabilidad, valorización, desarrollo, riesgo y el puntaje compuesto continúan **simulados para demostración** y no fueron modificados con esta incorporación.
 
 El Paso 5 automatiza el conector de mercado. GitHub Actions lo ejecuta el primer día de cada mes a las 08:17 de Argentina, valida la integridad del resultado y guarda un nuevo commit solo cuando hay cambios reales. El sitio consulta el archivo vigente del repositorio y utiliza su copia publicada como respaldo si esa lectura externa falla.
+
+El Paso 6 incorpora la mediana ponderada del ingreso total familiar de Gran Santa Fe calculada sobre microdatos EPH (INDEC), junto con la tasa, el plazo y el monto observado de hipotecarios UVA, el valor diario de la UVA y el dólar minorista vendedor del BCRA. Un simulador combina esas referencias con precios publicados para expresar el anticipo en meses de ingreso y el precio total en años de ingreso bruto. La comparación es orientativa, conserva las fechas de cada fuente y no modifica el puntaje zonal.
 
 ## Ejecución local
 

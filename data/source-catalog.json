@@ -57,6 +57,46 @@
       "limitations": "Los últimos meses son provisorios. La fuente no desagrega estos indicadores por vecinal; no deben utilizarse como valor barrial ni se incorporan aún al puntaje zonal."
     },
     {
+      "id": "indec_eph_gran_santa_fe_income",
+      "title": "Encuesta Permanente de Hogares · ingresos de los hogares",
+      "publisher": "Instituto Nacional de Estadística y Censos (INDEC)",
+      "classification": "official-microdata-derived",
+      "database_url": "https://www.indec.gob.ar/indec/web/Institucional-Indec-BasesDeDatos",
+      "geographic_level": "aglomerado Gran Santa Fe (código 10)",
+      "latest_period": "2026-Q1",
+      "accessed_at": "2026-09-13",
+      "variables": [
+        "ITF · ingreso total familiar",
+        "IPCF · ingreso per cápita familiar",
+        "PONDIH · ponderador de hogares"
+      ],
+      "purpose": "Referencia local de ingreso mediano y medio para analizar accesibilidad inmobiliaria",
+      "method": "Mediana ponderada de los hogares realizados con ingreso total familiar positivo.",
+      "limitations": "Estimación propia sobre microdatos oficiales. La muestra trimestral tiene error muestral; los trimestres primero y tercero pueden captar aguinaldo. No se publica por vecinal y no modifica el puntaje zonal."
+    },
+    {
+      "id": "bcra_mortgage_uva_and_fx",
+      "title": "Préstamos hipotecarios UVA, Unidad de Valor Adquisitivo y tipo de cambio minorista",
+      "publisher": "Banco Central de la República Argentina (BCRA)",
+      "classification": "official-financial-statistics",
+      "rates_url": "https://www.bcra.gob.ar/tasas-de-interes/",
+      "exchange_rate_url": "https://www.bcra.gob.ar/tipo-de-cambio-minorista/",
+      "geographic_level": "Argentina · sistema financiero",
+      "latest_credit_period": "2026-08",
+      "exchange_rate_date": "2026-09-09",
+      "uva_date": "2026-09-11",
+      "accessed_at": "2026-09-13",
+      "variables": [
+        "tasa promedio ponderada de hipotecarios UVA",
+        "plazo promedio ponderado",
+        "monto mensual otorgado",
+        "valor diario de la UVA",
+        "tipo de cambio minorista vendedor B 9791"
+      ],
+      "purpose": "Contextualizar las condiciones financieras y convertir de forma documentada ingresos en ARS y precios publicados en USD",
+      "limitations": "Los promedios del sistema no son una oferta bancaria. La tasa informada se adiciona a la actualización por UVA. La conversión entre períodos no reemplaza una evaluación crediticia ni una tasación."
+    },
+    {
       "id": "tulugar_santa_fe_market",
       "title": "Mercado inmobiliario de Santa Fe",
       "publisher": "TuLugar",

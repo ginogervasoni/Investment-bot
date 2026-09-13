@@ -13,13 +13,14 @@ const zones = [
 
 const profiles={balanced:{demand:.30,development:.25,infrastructure:.20,yield:.15,growth:.10,risk:.18},rent:{demand:.32,development:.08,infrastructure:.20,yield:.30,growth:.10,risk:.20},growth:{demand:.24,development:.25,infrastructure:.16,yield:.08,growth:.27,risk:.18},development:{demand:.18,development:.38,infrastructure:.18,yield:.06,growth:.20,risk:.20},conservative:{demand:.27,development:.12,infrastructure:.28,yield:.16,growth:.07,risk:.32}};
 const state={metric:'score',strategy:'balanced',minScore:45,selected:'candioti-norte',compare:[]};
-let map,markers=new Map(),officialBoundaries,censusLayer,censusData,constructionData,marketData;
+let map,markers=new Map(),officialBoundaries,censusLayer,censusData,constructionData,marketData,affordabilityData;
 
 const $=s=>document.querySelector(s); const $$=s=>[...document.querySelectorAll(s)];
 const fmt=n=>new Intl.NumberFormat('es-AR').format(n);
 const money=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(n);
 const pct=n=>`${n>=0?'+':''}${n.toFixed(1).replace('.',',')}%`;
 const periodLabel=period=>{const [year,month]=period.split('-').map(Number);return new Intl.DateTimeFormat('es-AR',{month:'short',year:'numeric'}).format(new Date(year,month-1,1)).replace('.','')};
+const quarterLabel=period=>{const [year,quarter]=period.split('-Q');return `${quarter}º trim ${year}`};
 const MARKET_REMOTE_URL='https://raw.githubusercontent.com/ginogervasoni/Investment-bot/main/data/market-santa-fe.json';
 
 function validMarketPayload(data){
@@ -58,6 +59,46 @@ function renderMarketOverview(){
   const latestPeriod=rows.map(([,row])=>row.period).sort().at(-1),generated=new Date(`${marketData.generated_at}T00:00:00Z`),ageDays=Math.max(0,Math.floor((Date.now()-generated.getTime())/86400000)),now=new Date(),nextCheck=new Date(now.getFullYear(),now.getMonth()+1,1);
   $('#marketPeriodLabel').textContent=periodLabel(latestPeriod);$('#pipelineStatus').textContent='Automatización activa';$('#pipelineLastUpdate').textContent=marketData.generated_at.split('-').reverse().join('/');$('#pipelineFreshness').textContent=ageDays<=45?'Datos dentro del ciclo mensual':`Última actualización hace ${ageDays} días`;$('#pipelineNextCheck').textContent=new Intl.DateTimeFormat('es-AR',{day:'2-digit',month:'short',year:'numeric'}).format(nextCheck).replace('.','');$('#pipelineCoverage').textContent=`${rows.length}/${zones.length} zonas`;
   $('#marketTable').innerHTML=`<div class="market-table-grid"><div class="market-table-head">Zona</div><div class="market-table-head">Depto. USD/m²</div><div class="market-table-head">Venta mediana</div><div class="market-table-head">Alquiler mediano</div><div class="market-table-head">Muestra</div>${rows.map(([id,row])=>`<div class="market-zone-cell"><span class="market-swatch" style="background:${marketColor(row.apartment_price_usd_m2)}"></span><b>${zones.find(z=>z.id===id).name}</b><small>${row.source_neighborhood}${row.match==='spelling_variant'?' · variante de nombre':''}</small></div><div><b>US$ ${fmt(Math.round(row.apartment_price_usd_m2))}</b></div><div>US$ ${fmt(Math.round(row.median_sale_usd))}</div><div>${row.median_rent_usd_month?`US$ ${fmt(Math.round(row.median_rent_usd_month))}`:'Sin muestra'}</div><div>${fmt(row.listings_total)} avisos</div>`).join('')}</div>`;
+  if(affordabilityData)renderAffordabilityCalculator();
+}
+
+async function loadAffordabilityData(){
+  try{
+    const response=await fetch('data/affordability-santa-fe.json');
+    if(!response.ok)throw new Error(`HTTP ${response.status}`);
+    affordabilityData=await response.json();renderAffordability();
+  }catch(error){console.error('No se pudieron cargar los datos de accesibilidad',error);$('#affIncome').textContent='No disponible';$('#affUpdated').textContent='No fue posible cargar la serie oficial.'}
+}
+
+function renderIncomeChart(rows){
+  const target=$('#incomeChart'),values=rows.map(row=>row.median_household_income_ars_month),max=Math.max(...values)*1.18,barWidth=650/rows.length;
+  const guides=[0,.5,1].map(f=>{const gy=45+f*165,value=max-f*max;return `<line x1="42" y1="${gy}" x2="692" y2="${gy}" class="data-gridline"/><text x="36" y="${gy+4}" text-anchor="end" class="data-axis">${(value/1000000).toFixed(1).replace('.',',')}M</text>`}).join('');
+  const bars=values.map((value,index)=>{const height=value/max*165;return `<rect x="${48+index*barWidth}" y="${210-height}" width="${Math.max(26,barWidth-20)}" height="${height}" rx="7" class="income-bar${index===values.length-1?' latest':''}"><title>${quarterLabel(rows[index].period)}: ${money(value)}</title></rect><text x="${48+index*barWidth+Math.max(26,barWidth-20)/2}" y="${202-height}" text-anchor="middle" class="data-value">${(value/1000000).toFixed(2).replace('.',',')}M</text>`}).join('');
+  target.innerHTML=`${guides}${bars}`;
+}
+
+function affordabilityPricePerM2(){
+  if(!marketData)return null;
+  const selected=$('#affZone').value;
+  if(selected==='city')return marketData.city.median_apartment_price_usd_m2;
+  return marketData.zones?.[selected]?.apartment_price_usd_m2??null;
+}
+
+function renderAffordabilityCalculator(){
+  if(!affordabilityData||!marketData)return;
+  const priceM2=affordabilityPricePerM2(),area=Math.max(20,Math.min(300,Number($('#affArea').value)||50)),down=Math.max(0,Math.min(90,Number($('#affDownPayment').value)||0));
+  if(!priceM2)return;
+  const propertyPrice=priceM2*area,initialCapital=propertyPrice*down/100,incomeUsd=affordabilityData.income.median_household_income_ars_month/affordabilityData.exchange_rate.ars_per_usd;
+  const months=initialCapital/incomeUsd,years=propertyPrice/(incomeUsd*12);
+  $('#affPropertyPrice').textContent=`US$ ${fmt(Math.round(propertyPrice))}`;$('#affInitialCapital').textContent=`US$ ${fmt(Math.round(initialCapital))}`;$('#affIncomeMonths').textContent=`${months.toFixed(1).replace('.',',')} meses`;$('#affIncomeYears').textContent=`${years.toFixed(1).replace('.',',')} años`;
+  $('#affCalculationNote').textContent=`${fmt(area)} m² × US$ ${fmt(Math.round(priceM2))}/m² · ingreso convertido a US$ ${fmt(Math.round(incomeUsd))}/mes con dólar BCRA vendedor.`;
+}
+
+function renderAffordability(){
+  const {income,credit,exchange_rate:fx,calculator}=affordabilityData;
+  $('#affIncome').textContent=money(income.median_household_income_ars_month);$('#affIncomePeriod').textContent=`Gran Santa Fe · ${quarterLabel(income.latest_period)}`;$('#affRate').textContent=`UVA + ${credit.mortgage_uva_nominal_annual_rate_pct.toFixed(2).replace('.',',')}%`;$('#affCreditPeriod').textContent=`promedio del sistema · ${periodLabel(credit.latest_period)}`;$('#affTerm').textContent=`${credit.mortgage_uva_average_term_years.toFixed(1).replace('.',',')} años`;$('#affUva').textContent=money(credit.uva_ars);$('#affUvaDate').textContent=`BCRA · ${credit.uva_date.split('-').reverse().join('/')}`;
+  $('#affCreditAmount').textContent=`${money(credit.mortgage_uva_amount_granted_ars/1000000000)} mil millones`;$('#affRateExplain').textContent=`UVA + ${credit.mortgage_uva_nominal_annual_rate_pct.toFixed(2).replace('.',',')}% no es una tasa fija en pesos.`;$('#affLimitations').textContent=calculator.limitations;$('#affUpdated').textContent=`EPH ${quarterLabel(income.latest_period)} · crédito ${periodLabel(credit.latest_period)} · dólar BCRA ${fx.date.split('-').reverse().join('/')}`;
+  renderIncomeChart(income.series);renderAffordabilityCalculator();
 }
 
 function renderLineChart(target,rows,key){
@@ -160,11 +201,12 @@ function renderComparison(){const selected=state.compare.map(id=>zones.find(z=>z
 function switchView(view){$$('.view').forEach(v=>v.classList.toggle('active',v.id===`view-${view}`));$$('.nav-link').forEach(b=>b.classList.toggle('active',b.dataset.view===view));if(view==='mapa')setTimeout(()=>map.invalidateSize(),50);if(view==='zonas'){renderRanking($('#rankingStrategy').value);renderCompareSelection()}}
 
 document.addEventListener('DOMContentLoaded',()=>{
-  initMap();loadConstructionData();loadMarketData();selectZone(state.selected);
+  initMap();loadConstructionData();loadMarketData();loadAffordabilityData();selectZone(state.selected);
   $('#strategy').addEventListener('change',e=>{state.strategy=e.target.value;renderMarkers();selectZone(state.selected)});
   $('#minScore').addEventListener('input',e=>{state.minScore=+e.target.value;$('#scoreOutput').textContent=e.target.value;renderMarkers()});
   $$('.layer-button').forEach(b=>b.addEventListener('click',()=>{$$('.layer-button').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.metric=b.dataset.metric;applyMapMode()}));
   $$('.nav-link').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.view)));
+  ['#affZone','#affArea','#affDownPayment'].forEach(selector=>$(selector).addEventListener('input',renderAffordabilityCalculator));
   $('#bestZoneButton').addEventListener('click',bestZone);$('#closePanel').addEventListener('click',()=>$('#insightPanel').classList.add('closed'));
   $('#rankingStrategy').addEventListener('change',e=>renderRanking(e.target.value));$('#runComparison').addEventListener('click',renderComparison);$('#closeComparison').addEventListener('click',()=>$('#comparisonResult').hidden=true);
   $('#compareCurrent').addEventListener('click',()=>{if(!state.compare.includes(state.selected)&&state.compare.length<3)state.compare.push(state.selected);switchView('zonas')});

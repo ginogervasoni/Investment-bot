@@ -63,3 +63,26 @@ Los importes son precios de oferta publicados, no precios de cierre de operacion
 5. crea un commit únicamente si el contenido real cambió.
 
 La validación exige que venta más alquiler coincidan con el total de avisos, que los precios sean positivos, que la atribución y los enlaces sean válidos y que las cuatro coincidencias territoriales permanezcan separadas de las seis zonas sin asignación. El sitio intenta leer la versión vigente de GitHub y conserva `data/market-santa-fe.json` como respaldo operativo.
+
+## Paso 6 — Crédito e ingresos
+
+`affordability-santa-fe.json` agrega dos fuentes oficiales que permiten medir accesibilidad sin alterar el puntaje de inversión:
+
+- microdatos de hogares de la EPH del INDEC para el aglomerado Gran Santa Fe (`AGLOMERADO=10`);
+- préstamos hipotecarios UVA, valor de la UVA y tipo de cambio minorista vendedor publicados por el BCRA.
+
+Para el primer trimestre de 2026, la mediana ponderada del ingreso total familiar positivo fue de $1.400.000 mensuales. El cálculo utiliza `ITF` y `PONDIH` para 608 hogares relevados, representativos de 349.646 hogares mediante el ponderador. Se informa como una estimación propia sobre microdatos oficiales y no como un cuadro publicado directamente por INDEC.
+
+En agosto de 2026, los hipotecarios UVA otorgados registraron una tasa nominal anual promedio de UVA + 6,91%, un plazo promedio de 8.499 días (23,3 años) y $362.624,8 millones otorgados a escala nacional. El valor UVA incorporado es $2.114,62 al 11 de septiembre y el tipo de cambio minorista vendedor B 9791 es $1.533,53 por USD al 9 de septiembre de 2026.
+
+El simulador combina estas referencias con el precio de oferta de departamentos de TuLugar. Muestra precio estimado, anticipo, meses de ingreso mediano necesarios para ese anticipo y relación precio/ingreso anual. No estima cuota, aprobación crediticia, impuestos, gastos ni precio final de escritura. Los períodos no son concurrentes, de modo que el resultado es orientativo y permanece fuera de los colores y rankings del mapa.
+
+La extracción se reproduce con:
+
+```bash
+python scripts/extract_affordability.py \
+  --fx 1533.53 --fx-date 2026-09-09 \
+  --uva 2114.62 --uva-date 2026-09-11
+```
+
+El script descarga cinco trimestres de EPH y la planilla mensual de préstamos UVA del BCRA. Los dos valores diarios se pasan explícitamente para que la fecha de corte quede auditada.

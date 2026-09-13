@@ -23,10 +23,11 @@
           <button class="nav-link" data-view="zonas">Zonas</button>
           <button class="nav-link" data-view="mercado">Mercado</button>
           <button class="nav-link" data-view="construccion">Construcción</button>
+          <button class="nav-link" data-view="accesibilidad">Accesibilidad</button>
           <button class="nav-link" data-view="metodologia">Metodología</button>
         </nav>
         <div class="header-actions">
-          <span class="demo-pill official-pill"><i></i> Paso 5 · Actualización mensual</span>
+          <span class="demo-pill official-pill"><i></i> Paso 6 · Crédito e ingresos</span>
           <button class="icon-button" id="openInfo" aria-label="Información sobre los datos">i</button>
         </div>
       </header>
@@ -269,6 +270,58 @@
           </div>
         </section>
 
+        <section class="view content-view affordability-view" id="view-accesibilidad">
+          <div class="affordability-hero">
+            <div>
+              <div class="eyebrow"><span></span> Accesibilidad · INDEC + BCRA</div>
+              <h1>Del precio publicado al esfuerzo real.</h1>
+              <p>Ingresos de los hogares de Gran Santa Fe y condiciones del crédito hipotecario UVA, sin confundir capacidad de compra con potencial de inversión.</p>
+            </div>
+            <div class="scope-card affordability-scope"><span>Regla metodológica</span><strong>Contexto, no puntaje</strong><p>Estos datos tienen escala de aglomerado o nacional. No se reparten entre barrios ni modifican el ranking zonal.</p></div>
+          </div>
+
+          <div class="affordability-kpis" aria-live="polite">
+            <article><span>Ingreso mediano del hogar</span><b id="affIncome">Cargando…</b><small id="affIncomePeriod">Gran Santa Fe · EPH</small></article>
+            <article><span>Tasa hipotecaria UVA</span><b id="affRate">—</b><small id="affCreditPeriod">promedio del sistema</small></article>
+            <article><span>Plazo promedio</span><b id="affTerm">—</b><small>hipotecarios UVA otorgados</small></article>
+            <article><span>UVA de referencia</span><b id="affUva">—</b><small id="affUvaDate">BCRA</small></article>
+          </div>
+
+          <div class="affordability-grid">
+            <article class="data-chart-card income-card">
+              <div class="data-card-heading"><div><span>Gran Santa Fe</span><h2>Ingreso mediano mensual del hogar</h2></div><span class="official-badge">EPH · microdatos</span></div>
+              <svg id="incomeChart" viewBox="0 0 720 250" role="img" aria-label="Ingreso mediano mensual del hogar en Gran Santa Fe"></svg>
+              <div class="chart-foot"><span>2025 · 1º trimestre</span><span>2026 · 1º trimestre</span></div>
+              <p class="chart-caveat">El 1º y 3º trimestre pueden captar aguinaldo. Se usa la mediana ponderada para reducir el efecto de valores extremos.</p>
+            </article>
+
+            <section class="effort-calculator" aria-labelledby="effortTitle">
+              <div class="calculator-heading"><div><span class="zone-kicker">Simulador transparente</span><h2 id="effortTitle">Esfuerzo de compra</h2></div><span class="estimate-badge">Estimación</span></div>
+              <div class="calculator-fields">
+                <label>Referencia de precio<select id="affZone"><option value="city">Santa Fe · mediana ciudad</option><option value="candioti-norte">Candioti Norte</option><option value="centro">Centro</option><option value="candioti-sur">Candioti Sur</option><option value="barranquitas">Barranquitas</option></select></label>
+                <label>Superficie<input id="affArea" type="number" min="20" max="300" step="5" value="50" /><span>m²</span></label>
+                <label>Anticipo<input id="affDownPayment" type="number" min="0" max="90" step="5" value="20" /><span>%</span></label>
+              </div>
+              <div class="effort-results" aria-live="polite">
+                <div><span>Precio publicado estimado</span><b id="affPropertyPrice">—</b></div>
+                <div><span>Capital inicial</span><b id="affInitialCapital">—</b></div>
+                <div class="effort-highlight"><span>Meses de ingreso para el anticipo</span><b id="affIncomeMonths">—</b></div>
+                <div><span>Precio / ingreso anual</span><b id="affIncomeYears">—</b></div>
+              </div>
+              <p id="affCalculationNote" class="calculator-note">Cargando referencias…</p>
+            </section>
+          </div>
+
+          <section class="credit-reading">
+            <div><span class="zone-kicker">Mercado de crédito</span><h2>Qué dice el dato oficial</h2></div>
+            <div class="credit-stat"><span>Monto otorgado · ago 2026</span><b id="affCreditAmount">—</b><small>hipotecarios UVA · total nacional</small></div>
+            <p><b id="affRateExplain">La tasa no es fija en pesos.</b> Se expresa como tasa nominal anual adicional a la actualización del capital por UVA. Una oferta individual puede variar por banco, relación cuota/ingreso, anticipo y perfil crediticio.</p>
+          </section>
+
+          <div class="method-notice affordability-notice"><b>Comparación orientativa, no simulación bancaria</b><p id="affLimitations">Los indicadores utilizan períodos y escalas diferentes. No incluyen aprobación, cuota, impuestos, gastos ni precio final de escritura.</p></div>
+          <div class="construction-source-row"><span id="affUpdated">Actualizando fuentes…</span><div><a href="https://www.indec.gob.ar/indec/web/Institucional-Indec-BasesDeDatos" target="_blank" rel="noopener">Microdatos EPH ↗</a><a href="https://www.bcra.gob.ar/tasas-de-interes/" target="_blank" rel="noopener">Tasas BCRA ↗</a><a href="https://www.bcra.gob.ar/tipo-de-cambio-minorista/" target="_blank" rel="noopener">Tipo de cambio ↗</a></div></div>
+        </section>
+
         <section class="view content-view" id="view-metodologia">
           <div class="method-hero">
             <div><div class="eyebrow"><span></span> Modelo transparente</div><h1>Una señal clara, construida con evidencia.</h1><p>Nodo combina datos territoriales, económicos y de mercado. Cada resultado conserva su origen, período y calidad.</p></div>
@@ -282,8 +335,8 @@
             <article><span class="method-num">10%</span><h3>Valorización</h3><p>Evolución relativa de precios, demanda e inversiones cercanas.</p></article>
             <article class="risk-card"><span class="method-num">−R</span><h3>Riesgo</h3><p>Exposición hídrica, oferta excesiva, baja muestra y datos antiguos.</p></article>
           </div>
-          <div class="sources-section"><div><span class="zone-kicker">Fuentes incorporadas y previstas</span><h2>Trazabilidad desde el origen</h2></div><div class="source-tags"><span class="source-live">INDEC · incorporada</span><span class="source-live">SCIT · incorporada</span><span class="source-live">IPEC · incorporada</span><span class="source-live">TuLugar · incorporada</span><span>BCRA</span><span>Colegio de Escribanos</span></div></div>
-          <div class="method-notice step-complete"><b>Paso 5 completado · Actualización mensual</b><p>El mercado se controla automáticamente el primer día de cada mes. Antes de publicar, el proceso valida períodos, totales, precios, atribución y correspondencias territoriales. Si la fuente no cambia, no genera una actualización artificial.</p></div>
+          <div class="sources-section"><div><span class="zone-kicker">Fuentes incorporadas y previstas</span><h2>Trazabilidad desde el origen</h2></div><div class="source-tags"><span class="source-live">INDEC · incorporada</span><span class="source-live">SCIT · incorporada</span><span class="source-live">IPEC · incorporada</span><span class="source-live">TuLugar · incorporada</span><span class="source-live">BCRA · incorporada</span><span>Colegio de Escribanos</span></div></div>
+          <div class="method-notice step-complete"><b>Paso 6 completado · Crédito e ingresos</b><p>La accesibilidad combina microdatos EPH de Gran Santa Fe, condiciones observadas de hipotecarios UVA y tipo de cambio oficial. La comparación queda fuera del puntaje hasta contar con períodos concurrentes e información territorial más fina.</p></div>
         </section>
       </main>
     </div>
@@ -292,7 +345,7 @@
       <button class="dialog-close" aria-label="Cerrar">×</button>
       <span class="zone-kicker">Acerca del prototipo</span>
       <h2>Datos claros desde el primer día</h2>
-      <p>La geografía vecinal proviene de SCIT/IDESF, los indicadores demográficos del Censo 2022 del INDEC, la construcción de IPEC y los precios de oferta autorizados de TuLugar. Los puntajes, rentabilidades y valorizaciones todavía son demostrativos.</p>
+      <p>La geografía vecinal proviene de SCIT/IDESF, los indicadores demográficos e ingresos del INDEC, la construcción de IPEC, las condiciones financieras del BCRA y los precios de oferta autorizados de TuLugar. Los puntajes, rentabilidades y valorizaciones todavía son demostrativos.</p>
       <div class="dialog-points"><p><i class="official"></i><span><b>Dato oficial</b>Publicado por un organismo público.</span></p><p><i class="market"></i><span><b>Dato de mercado</b>Proveniente de publicaciones autorizadas.</span></p><p><i class="estimate"></i><span><b>Estimación</b>Resultado de un cálculo documentado.</span></p></div>
     </dialog>
 
